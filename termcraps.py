@@ -1,19 +1,11 @@
 """A proof-of-concept, single player Craps game in the terminal."""
 
-from enum import Enum, unique
 from fractions import Fraction
 from operator import attrgetter
 from random import randint
 from typing import Dict, Optional, Tuple
 
-
-@unique
-class BetType(Enum):
-    """Represents a type of bet."""
-    PASS = 'pass'
-    DONT_PASS = 'dont_pass'
-    PASS_ODDS = 'pass_odds'
-    DONT_PASS_ODDS = 'dont_pass_odds'
+from game.bet import BetType
 
 
 # Multipliers on returns of a Pass Odds bet for each point number
@@ -25,19 +17,6 @@ PASS_ODDS_MULTIPLIER = {
     9: Fraction(6, 4),
     10: Fraction(6, 3),
 }
-
-
-class Bet:
-    """Represents a single bet.
-
-    Args:
-        bet_type: The type of the bet.
-        amount: Amount to bet.
-    """
-
-    def __init__(self, bet_type: BetType, amount: int) -> None:
-        self.type = bet_type
-        self.amount = amount
 
 
 class GameState:
