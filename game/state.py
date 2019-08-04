@@ -15,14 +15,14 @@ class GameState:
     def __init__(self, balance: int) -> None:
         self.balance = balance
         self.round: int = 0
-        self.point_number: Optional[int] = None
+        self.point: Optional[int] = None
         self.bets: Dict[bet.BetType, int] = {}
         self.last_roll: Optional[Tuple[int, int]] = None
 
     def reset_round(self) -> None:
         """Resets a round."""
         self.round = 0
-        self.point_number = None
+        self.point = None
         self.bets.clear()
         self.last_roll = None
 
@@ -45,6 +45,6 @@ class GameState:
         bet_class = bet_type.to_class()
         return bet_class(
             wager=self.bets.get(bet_type, 0),
-            point=self.point_number,
+            point=self.point,
             state=self,
         )

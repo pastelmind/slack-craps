@@ -24,10 +24,10 @@ def round(state: GameState) -> None:
     """A single round (die roll stage) in a round of craps."""
 
     state.round += 1
-    if state.point_number is None:
+    if state.point is None:
         print(f'Round {state.round}: Come Out phase')
     else:
-        print(f'Round {state.round}: Point phase (point: {state.point_number})')
+        print(f'Round {state.round}: Point phase (point: {state.point})')
 
     bet_state_message = 'Your bets:'
     if state.bets:
@@ -57,7 +57,7 @@ def round(state: GameState) -> None:
         bet_type_str = input(f'Choose bet type ({bet_types_str}): ').strip()
 
         if not bet_type_str:
-            if state.point_number is None:
+            if state.point is None:
                 print("You can't skip a bet in the Come Out round when you are the shooter.")
                 continue
             else:
@@ -134,9 +134,9 @@ def round(state: GameState) -> None:
         assert not state.bets, f'Unexpected bets remaining: \n{state.bets!r}'
         state.reset_round()
     else:
-        if state.point_number is None:
-            state.point_number = roll_sum
-            print(f'You established a point: {state.point_number}')
+        if state.point is None:
+            state.point = roll_sum
+            print(f'You established a point: {state.point}')
         else:
             print('Roll it again, baby.')
 
