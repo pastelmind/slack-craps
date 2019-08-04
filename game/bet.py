@@ -30,9 +30,11 @@ class Bet:
         amount: Amount to bet.
 
     Attributes:
+        name: Human-readable name of the bet type.
         type: String representing the type of the bet.
     """
 
+    name: str = 'Bet'
     type: BetType = NotImplementedError('Must be overridden in a child class')
 
     def check(self, *, roll: int, point: Union[int, None]) -> BetOutcome:
@@ -51,6 +53,7 @@ class Bet:
 class PassBet(Bet):
     """A bet on the shooter winning."""
 
+    name: str = 'Pass'
     type = BetType.PASS
 
     def check(self, *, roll: int, point: Union[int, None]) -> BetOutcome:
@@ -70,6 +73,7 @@ class PassBet(Bet):
 class DontPassBet(Bet):
     """A bet on the shooter losing."""
 
+    name: str = "Don't Pass"
     type = BetType.DONT_PASS
 
     def check(self, *, roll: int, point: Union[int, None]) -> BetOutcome:
@@ -91,6 +95,7 @@ class DontPassBet(Bet):
 class PassOddsBet(Bet):
     """An Odds bet on a Pass bet winning."""
 
+    name: str = "Pass Odds"
     type = BetType.PASS_ODDS
 
     def check(self, *, roll: int, point: Union[int, None]) -> BetOutcome:
@@ -105,6 +110,7 @@ class PassOddsBet(Bet):
 class DontPassOddsBet(Bet):
     """An Odds bet on a Don't Pass bet winning."""
 
+    name: str = "Don't Pass Odds"
     type = BetType.DONT_PASS_ODDS
 
     def check(self, *, roll: int, point: Union[int, None]) -> BetOutcome:
