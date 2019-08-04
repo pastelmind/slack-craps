@@ -120,3 +120,26 @@ class DontPassOddsBet(Bet):
         elif roll == point:
             return BetOutcome.LOSE
         return BetOutcome.UNDECIDED
+
+
+_BET_TYPE_TO_BET = {
+    BetType.PASS: PassBet,
+    BetType.DONT_PASS: DontPassBet,
+    BetType.PASS_ODDS: PassOddsBet,
+    BetType.DONT_PASS_ODDS: DontPassOddsBet,
+}
+
+
+def to_bet(bet_type: Union[BetType, str]) -> Bet:
+    """Returns the bet class matching the given bet type.
+
+    Args:
+        bet_type: A BetType, or a string matching one.
+    Returns:
+        Matching class for the bet.
+    Raises:
+        ValueError: If the bet_type does not match any Bet.
+    """
+    if not isinstance(bet_type, BetType):
+        bet_type = BetType(bet_type)
+    return _BET_TYPE_TO_BET[bet_type]
