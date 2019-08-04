@@ -4,7 +4,7 @@ from fractions import Fraction
 from operator import attrgetter
 from random import randint
 
-from game.bet import BetType, BetOutcome, to_bet
+from game.bet import BetType, BetOutcome
 from game.bet import PassBet, DontPassBet
 from game.state import GameState
 
@@ -39,12 +39,7 @@ def round(state: GameState) -> None:
 
     allowed_bet_types = set()
     for bet_type in BetType:
-        bet_class = to_bet(bet_type)
-        bet = bet_class(
-            wager=state.bets.get(bet_type, 0),
-            point=state.point_number,
-            state=state,
-        )
+        bet = state.get_bet(bet_type)
 
         assert bet.wager >= 0, 'Bet wager cannot be negative'
         if bet.wager == 0:
@@ -84,12 +79,7 @@ def round(state: GameState) -> None:
             print(f'{bet_amount_str!r} is not a valid bet amount.')
             continue
 
-        bet_class = to_bet(bet_type)
-        bet = bet_class(
-            wager=state.bets.get(bet_type, 0),
-            point=state.point_number,
-            state=state,
-        )
+        bet = state.get_bet(bet_type)
         new_wager = bet.wager + bet_amount
 
         if new_wager < 0:
@@ -110,7 +100,7 @@ def round(state: GameState) -> None:
 
         print('You made a bet.')
         state.balance -= bet_amount
-        state.bets[bet_type] = state.bets.get(bet_type, 0) + bet_amount
+        state.bets[bet_type] = new_wager
         break
 
 
@@ -122,8 +112,7 @@ def round(state: GameState) -> None:
 
     # Use a list so we can modify the state.bets dictionary inside the loop
     for bet_type, wager in list(state.bets.items()):
-        bet_class = to_bet(bet_type)
-        bet = bet_class(wager=wager, point=state.point_number, state=state)
+        bet = state.get_bet(bet_type)
         bet_result = bet.check(roll=roll_sum)
 
         if bet_result == BetOutcome.WIN:
@@ -138,7 +127,7 @@ def round(state: GameState) -> None:
 
         if bet_result != BetOutcome.UNDECIDED:
             del state.bets[bet_type]
-            if bet_class in (PassBet, DontPassBet):
+            if isinstance(bet, (PassBet, DontPassBet)):
                 is_game_finished = True
 
     if is_game_finished:

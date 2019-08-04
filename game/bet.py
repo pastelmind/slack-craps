@@ -9,15 +9,6 @@ from . import state as game_state
 
 
 @unique
-class BetType(Enum):
-    """A type of bet."""
-    PASS = 'pass'
-    DONT_PASS = 'dont_pass'
-    PASS_ODDS = 'pass_odds'
-    DONT_PASS_ODDS = 'dont_pass_odds'
-
-
-@unique
 class BetOutcome(Enum):
     """Represents the outcome of a bet."""
     UNDECIDED = 0
@@ -36,11 +27,11 @@ class Bet:
 
     Attributes:
         name: Human-readable name of the bet type.
-        type: String representing the type of the bet.
+        code: String representing the type of the bet.
     """
 
     name: str = 'Bet'
-    type: BetType = NotImplementedError('Must be overridden in a child class')
+    code: str = NotImplementedError('Must be overridden in a child class')
 
     def __init__(
             self, *, wager: int, point: Union[int, None],
@@ -112,7 +103,7 @@ class PassBet(Bet):
     """A bet on the shooter winning."""
 
     name: str = 'Pass'
-    type = BetType.PASS
+    code: str = 'pass'
 
     def check(self, *, roll: int) -> BetOutcome:
         if self.point is None:
@@ -149,7 +140,7 @@ class DontPassBet(Bet):
     """A bet on the shooter losing."""
 
     name: str = "Don't Pass"
-    type = BetType.DONT_PASS
+    code: str = 'dont_pass'
 
     def check(self, *, roll: int) -> BetOutcome:
         if self.point is None:
@@ -208,7 +199,7 @@ class PassOddsBet(Bet):
     """An Odds bet on a Pass bet winning."""
 
     name: str = "Pass Odds"
-    type = BetType.PASS_ODDS
+    code: str = 'pass_odds'
 
     def check(self, *, roll: int) -> BetOutcome:
         assert self.point is not None, 'Point must be set for this bet'
@@ -245,7 +236,7 @@ class DontPassOddsBet(Bet):
     """An Odds bet on a Don't Pass bet winning."""
 
     name: str = "Don't Pass Odds"
-    type = BetType.DONT_PASS_ODDS
+    code: str = 'dont_pass_odds'
 
     def check(self, *, roll: int) -> BetOutcome:
         assert self.point is not None, 'Point must be set for this bet'
@@ -281,24 +272,24 @@ class DontPassOddsBet(Bet):
         return int(dont_pass_wager * pass_odds_wager_rate * pass_odds_pay_rate)
 
 
+@unique
+class BetType(Enum):
+    """A type of bet."""
+    PASS = PassBet.code
+    DONT_PASS = DontPassBet.code
+    PASS_ODDS = PassOddsBet.code
+    DONT_PASS_ODDS = DontPassOddsBet.code
+
+    def to_class(self) -> 'Bet':
+        """Returns the bet class matching the current bet type."""
+        return _BET_TYPE_TO_BET[self.value]
+
+
 _BET_TYPE_TO_BET = {
-    BetType.PASS: PassBet,
-    BetType.DONT_PASS: DontPassBet,
-    BetType.PASS_ODDS: PassOddsBet,
-    BetType.DONT_PASS_ODDS: DontPassOddsBet,
+    cls.code: cls for cls in (
+        PassBet,
+        DontPassBet,
+        PassOddsBet,
+        DontPassOddsBet,
+    )
 }
-
-
-def to_bet(bet_type: Union[BetType, str]) -> Bet:
-    """Returns the bet class matching the given bet type.
-
-    Args:
-        bet_type: A BetType, or a string matching one.
-    Returns:
-        Matching class for the bet.
-    Raises:
-        ValueError: If the bet_type does not match any Bet.
-    """
-    if not isinstance(bet_type, BetType):
-        bet_type = BetType(bet_type)
-    return _BET_TYPE_TO_BET[bet_type]
