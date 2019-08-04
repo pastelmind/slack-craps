@@ -3,10 +3,10 @@
 from fractions import Fraction
 from operator import attrgetter
 from random import randint
-from typing import Dict, Optional, Tuple
 
 from game.bet import BetType, BetOutcome, to_bet
 from game.bet import PassBet, DontPassBet
+from game.state import GameState
 
 
 # Multipliers on returns of a Pass Odds bet for each point number
@@ -18,28 +18,6 @@ PASS_ODDS_MULTIPLIER = {
     9: Fraction(6, 4),
     10: Fraction(6, 3),
 }
-
-
-class GameState:
-    """Represents the collective state of a game.
-
-    Args:
-        balance: Starting balance of the player.
-    """
-
-    def __init__(self, balance: int) -> None:
-        self.balance = balance
-        self.round: int = 0
-        self.point_number: Optional[int] = None
-        self.bets: Dict[BetType, int] = {}
-        self.last_roll: Optional[Tuple[int, int]] = None
-
-    def reset_round(self) -> None:
-        """Resets a round."""
-        self.round = 0
-        self.point_number = None
-        self.bets.clear()
-        self.last_roll = None
 
 
 def round(state: GameState) -> None:
