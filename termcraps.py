@@ -126,8 +126,7 @@ def round(state: GameState) -> None:
         bet_result = bet.check(roll=roll_sum)
 
         if bet_result == BetOutcome.WIN:
-            pay_rate = bet.pay_rate()
-            win_amount = wager + int(pay_rate * wager)
+            win_amount = wager + bet.winnings()
             state.balance += win_amount
             print(f'  You won a {bet.name} bet! (+${win_amount})')
         elif bet_result == BetOutcome.LOSE:

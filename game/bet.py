@@ -64,6 +64,17 @@ class Bet:
         """
         raise NotImplementedError('Must be overridden in a child class')
 
+    def winnings(self) -> int:
+        """Returns the winnnings offered for this bet.
+
+        Returns:
+            Equal to wager * pay_rate(), floored.
+
+        Raises:
+            ValueError: If the internal point number is invalid for this bet.
+        """
+        return int(self.wager * self.pay_rate())
+
 
 class PassBet(Bet):
     """A bet on the shooter winning."""
