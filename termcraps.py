@@ -5,7 +5,8 @@ from operator import attrgetter
 from random import randint
 from typing import Dict, Optional, Tuple
 
-from game.bet import BetType
+from game.bet import BetType, BetOutcome, to_bet
+from game.bet import PassBet, DontPassBet
 
 
 # Multipliers on returns of a Pass Odds bet for each point number
@@ -116,94 +117,37 @@ def round(state: GameState) -> None:
     print(f'You rolled {roll1}, {roll2}')
     roll_sum = sum(state.last_roll)
 
-    if state.point_number is None:
-        if roll_sum in (7, 11):
-            bet_amount = state.bets.pop(BetType.PASS, 0)
-            if bet_amount:
-                win_amount = 2 * bet_amount
-                state.balance += win_amount
-                print(f'You won a Pass bet! (+{win_amount})')
+    is_game_finished = False
 
-            bet_amount = state.bets.pop(BetType.DONT_PASS, 0)
-            if bet_amount:
-                print(f"You lost a Don't Pass bet! ({bet_amount} gone)")
+    # Use a list so we can modify the state.bets dictionary inside the loop
+    for bet_type, wager in list(state.bets.items()):
+        bet_class = to_bet(bet_type)
+        bet = bet_class()
+        bet_result = bet.check(roll=roll_sum, point=state.point_number)
 
-            assert not state.bets, f'Unexpected bets remaining: \n{state.bets!r}'
-            state.reset_round()
+        if bet_result == BetOutcome.WIN:
+            pay_rate = bet.pay_rate(point=state.point_number)
+            win_amount = wager + int(pay_rate * wager)
+            state.balance += win_amount
+            print(f'  You won a {bet.name} bet! (+${win_amount})')
+        elif bet_result == BetOutcome.LOSE:
+            print(f'  You lost a {bet.name} bet... (${wager} gone)')
+        elif bet_result == BetOutcome.TIE:
+            state.balance += wager
+            print(f'  You tied a {bet.name} bet. (+${wager})')
 
-        elif roll_sum in (2, 3, 12):
-            bet_amount = state.bets.pop(BetType.PASS, 0)
-            if bet_amount:
-                print(f'You lost a Pass bet! ({bet_amount} gone)')
+        if bet_result != BetOutcome.UNDECIDED:
+            del state.bets[bet_type]
+            if bet_class in (PassBet, DontPassBet):
+                is_game_finished = True
 
-            bet_amount = state.bets.pop(BetType.DONT_PASS, 0)
-            if bet_amount:
-                if roll_sum == 12:
-                    print(f"You tied a Don't Pass bet. (+{bet_amount})")
-                    state.balance += bet_amount
-                else:
-                    win_amount = 2 * bet_amount
-                    state.balance += win_amount
-                    print(f"You won a Don't Pass bet! (+{win_amount})")
-
-            assert not state.bets, f'Unexpected bets remaining: \n{state.bets!r}'
-            state.reset_round()
-
-        else:
+    if is_game_finished:
+        assert not state.bets, f'Unexpected bets remaining: \n{state.bets!r}'
+        state.reset_round()
+    else:
+        if state.point_number is None:
             state.point_number = roll_sum
             print(f'You established a point: {state.point_number}')
-
-    else:
-        if roll_sum == state.point_number:
-            bet_amount = state.bets.pop(BetType.PASS, 0)
-            if bet_amount:
-                win_amount = 2 * bet_amount
-                state.balance += win_amount
-                print(f'You won a Pass bet! (+{win_amount})')
-
-            bet_amount = state.bets.pop(BetType.PASS_ODDS, 0)
-            if bet_amount:
-                win_multiplier = 1 + PASS_ODDS_MULTIPLIER[state.point_number]
-                win_amount = int(win_multiplier * bet_amount)
-                state.balance += win_amount
-                print(f'You won a Pass Odds bet! (+{win_amount})')
-
-            bet_amount = state.bets.pop(BetType.DONT_PASS, 0)
-            if bet_amount:
-                print(f"You lost a Don't Pass bet! ({bet_amount} gone)")
-
-            bet_amount = state.bets.pop(BetType.DONT_PASS_ODDS, 0)
-            if bet_amount:
-                print(f"You lost a Don't Pass Odds bet! ({bet_amount} gone)")
-
-            assert not state.bets, f'Unexpected bets remaining: \n{state.bets!r}'
-            state.reset_round()
-
-        elif roll_sum == 7:
-            bet_amount = state.bets.pop(BetType.PASS, 0)
-            if bet_amount:
-                print(f'You lost a Pass bet! ({bet_amount} gone)')
-
-            bet_amount = state.bets.pop(BetType.PASS_ODDS, 0)
-            if bet_amount:
-                print(f'You lost a Pass Odds bet! ({bet_amount} gone)')
-
-            bet_amount = state.bets.pop(BetType.DONT_PASS, 0)
-            if bet_amount:
-                win_amount = 2 * bet_amount
-                state.balance += win_amount
-                print(f"You won a Don't Pass bet! (+{win_amount})")
-
-            bet_amount = state.bets.pop(BetType.DONT_PASS_ODDS, 0)
-            if bet_amount:
-                win_multiplier = 1 + 1 / PASS_ODDS_MULTIPLIER[state.point_number]
-                win_amount = int(win_multiplier * bet_amount)
-                state.balance += win_amount
-                print(f"You won a Don't Pass Odds bet! (+{win_amount})")
-
-            assert not state.bets, f'Unexpected bets remaining: \n{state.bets!r}'
-            state.reset_round()
-
         else:
             print('Roll it again, baby.')
 
