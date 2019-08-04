@@ -1,6 +1,7 @@
 """Provides classes for bets and bet types."""
 
 from enum import Enum, unique
+from fractions import Fraction
 from typing import Union
 
 
@@ -49,6 +50,20 @@ class Bet:
         """
         raise NotImplementedError('Must be overridden in a child class')
 
+    def pay_rate(self, *, point: Union[int, None]) -> Union[float, Fraction]:
+        """Returns the winnnings-to-wager rate for this bet.
+
+        Args:
+            point: Point number for this bet, or None if point is not set.
+
+        Returns:
+            Rate of winnings to wager for this bet.
+
+        Raises:
+            ValueError: If the roll is invalid for this bet.
+        """
+        raise NotImplementedError('Must be overridden in a child class')
+
 
 class PassBet(Bet):
     """A bet on the shooter winning."""
@@ -68,6 +83,11 @@ class PassBet(Bet):
             elif roll == 7:
                 return BetOutcome.LOSE
         return BetOutcome.UNDECIDED
+
+    # pylint: disable=unused-argument
+    def pay_rate(self, *, point=None) -> Union[float, Fraction]:
+        return 1
+    # pylint: enable=unused-argument
 
 
 class DontPassBet(Bet):
@@ -91,6 +111,22 @@ class DontPassBet(Bet):
                 return BetOutcome.LOSE
         return BetOutcome.UNDECIDED
 
+    # pylint: disable=unused-argument
+    def pay_rate(self, *, point=None) -> Union[float, Fraction]:
+        return 1
+    # pylint: enable=unused-argument
+
+
+# Maps each point number to pay rate of a Pass Odds bet
+_PASS_ODDS_PAY_RATE = {
+    4: Fraction(2, 1),
+    5: Fraction(3, 2),
+    6: Fraction(6, 5),
+    8: Fraction(6, 5),
+    9: Fraction(3, 2),
+    10: Fraction(2, 1),
+}
+
 
 class PassOddsBet(Bet):
     """An Odds bet on a Pass bet winning."""
@@ -106,6 +142,15 @@ class PassOddsBet(Bet):
             return BetOutcome.LOSE
         return BetOutcome.UNDECIDED
 
+    def pay_rate(self, *, point: int) -> Union[float, Fraction]:
+        try:
+            return _PASS_ODDS_PAY_RATE[point]
+        except KeyError:
+            raise ValueError(
+                f'{point!r} is invalid point, expected one of '
+                f'{", ".join(_PASS_ODDS_PAY_RATE.keys())}'
+            )
+
 
 class DontPassOddsBet(Bet):
     """An Odds bet on a Don't Pass bet winning."""
@@ -120,6 +165,15 @@ class DontPassOddsBet(Bet):
         elif roll == point:
             return BetOutcome.LOSE
         return BetOutcome.UNDECIDED
+
+    def pay_rate(self, *, point: int) -> Union[float, Fraction]:
+        try:
+            return 1 / _PASS_ODDS_PAY_RATE[point]
+        except KeyError:
+            raise ValueError(
+                f'{point!r} is invalid point, expected one of '
+                f'{", ".join(_PASS_ODDS_PAY_RATE.keys())}'
+            )
 
 
 _BET_TYPE_TO_BET = {
