@@ -27,8 +27,8 @@ class Bet:
     """A single bet.
 
     Args:
-        bet_type: The type of the bet.
-        amount: Amount to bet.
+        wager: Amount of wager to bet.
+        point: The point number for this bet, or None if not set.
 
     Attributes:
         name: Human-readable name of the bet type.
@@ -38,29 +38,29 @@ class Bet:
     name: str = 'Bet'
     type: BetType = NotImplementedError('Must be overridden in a child class')
 
-    def check(self, *, roll: int, point: Union[int, None]) -> BetOutcome:
+    def __init__(self, *, wager: int, point: Union[int, None]) -> None:
+        self.wager = wager
+        self.point = point
+
+    def check(self, *, roll: int) -> BetOutcome:
         """Checks the outcome of this bet after a given roll.
 
         Args:
             roll: Dice roll sum of the current round.
-            point: Point number, or None if not set.
 
         Returns:
             The outcome of the bet.
         """
         raise NotImplementedError('Must be overridden in a child class')
 
-    def pay_rate(self, *, point: Union[int, None]) -> Union[float, Fraction]:
+    def pay_rate(self) -> Union[float, Fraction]:
         """Returns the winnnings-to-wager rate for this bet.
-
-        Args:
-            point: Point number for this bet, or None if point is not set.
 
         Returns:
             Rate of winnings to wager for this bet.
 
         Raises:
-            ValueError: If the roll is invalid for this bet.
+            ValueError: If the internal point number is invalid for this bet.
         """
         raise NotImplementedError('Must be overridden in a child class')
 
@@ -71,23 +71,21 @@ class PassBet(Bet):
     name: str = 'Pass'
     type = BetType.PASS
 
-    def check(self, *, roll: int, point: Union[int, None]) -> BetOutcome:
-        if point is None:
+    def check(self, *, roll: int) -> BetOutcome:
+        if self.point is None:
             if roll in (7, 11):
                 return BetOutcome.WIN
             elif roll in (2, 3, 12):
                 return BetOutcome.LOSE
         else:
-            if roll == point:
+            if roll == self.point:
                 return BetOutcome.WIN
             elif roll == 7:
                 return BetOutcome.LOSE
         return BetOutcome.UNDECIDED
 
-    # pylint: disable=unused-argument
-    def pay_rate(self, *, point=None) -> Union[float, Fraction]:
+    def pay_rate(self) -> Union[float, Fraction]:
         return 1
-    # pylint: enable=unused-argument
 
 
 class DontPassBet(Bet):
@@ -96,8 +94,8 @@ class DontPassBet(Bet):
     name: str = "Don't Pass"
     type = BetType.DONT_PASS
 
-    def check(self, *, roll: int, point: Union[int, None]) -> BetOutcome:
-        if point is None:
+    def check(self, *, roll: int) -> BetOutcome:
+        if self.point is None:
             if roll in (2, 3):
                 return BetOutcome.WIN
             elif roll in (7, 11):
@@ -107,14 +105,12 @@ class DontPassBet(Bet):
         else:
             if roll == 7:
                 return BetOutcome.WIN
-            elif roll == point:
+            elif roll == self.point:
                 return BetOutcome.LOSE
         return BetOutcome.UNDECIDED
 
-    # pylint: disable=unused-argument
-    def pay_rate(self, *, point=None) -> Union[float, Fraction]:
+    def pay_rate(self) -> Union[float, Fraction]:
         return 1
-    # pylint: enable=unused-argument
 
 
 # Maps each point number to pay rate of a Pass Odds bet
@@ -134,20 +130,20 @@ class PassOddsBet(Bet):
     name: str = "Pass Odds"
     type = BetType.PASS_ODDS
 
-    def check(self, *, roll: int, point: Union[int, None]) -> BetOutcome:
-        assert point is not None, 'Point must be set for a Pass Odds bet'
-        if roll == point:
+    def check(self, *, roll: int) -> BetOutcome:
+        assert self.point is not None, 'Point must be set for this bet'
+        if roll == self.point:
             return BetOutcome.WIN
         elif roll == 7:
             return BetOutcome.LOSE
         return BetOutcome.UNDECIDED
 
-    def pay_rate(self, *, point: int) -> Union[float, Fraction]:
+    def pay_rate(self) -> Union[float, Fraction]:
         try:
-            return _PASS_ODDS_PAY_RATE[point]
+            return _PASS_ODDS_PAY_RATE[self.point]
         except KeyError:
             raise ValueError(
-                f'{point!r} is invalid point, expected one of '
+                f'{self.point!r} is invalid point, expected one of '
                 f'{", ".join(_PASS_ODDS_PAY_RATE.keys())}'
             )
 
@@ -158,20 +154,20 @@ class DontPassOddsBet(Bet):
     name: str = "Don't Pass Odds"
     type = BetType.DONT_PASS_ODDS
 
-    def check(self, *, roll: int, point: Union[int, None]) -> BetOutcome:
-        assert point is not None, "Point must be set for a Don't Pass Odds bet"
+    def check(self, *, roll: int) -> BetOutcome:
+        assert self.point is not None, 'Point must be set for this bet'
         if roll == 7:
             return BetOutcome.WIN
-        elif roll == point:
+        elif roll == self.point:
             return BetOutcome.LOSE
         return BetOutcome.UNDECIDED
 
-    def pay_rate(self, *, point: int) -> Union[float, Fraction]:
+    def pay_rate(self) -> Union[float, Fraction]:
         try:
-            return 1 / _PASS_ODDS_PAY_RATE[point]
+            return 1 / _PASS_ODDS_PAY_RATE[self.point]
         except KeyError:
             raise ValueError(
-                f'{point!r} is invalid point, expected one of '
+                f'{self.point!r} is invalid point, expected one of '
                 f'{", ".join(_PASS_ODDS_PAY_RATE.keys())}'
             )
 

@@ -122,11 +122,11 @@ def round(state: GameState) -> None:
     # Use a list so we can modify the state.bets dictionary inside the loop
     for bet_type, wager in list(state.bets.items()):
         bet_class = to_bet(bet_type)
-        bet = bet_class()
-        bet_result = bet.check(roll=roll_sum, point=state.point_number)
+        bet = bet_class(wager=wager, point=state.point_number)
+        bet_result = bet.check(roll=roll_sum)
 
         if bet_result == BetOutcome.WIN:
-            pay_rate = bet.pay_rate(point=state.point_number)
+            pay_rate = bet.pay_rate()
             win_amount = wager + int(pay_rate * wager)
             state.balance += win_amount
             print(f'  You won a {bet.name} bet! (+${win_amount})')
