@@ -38,16 +38,22 @@ def round(state: GameState) -> None:
     print(bet_state_message)
 
     allowed_bet_types = set()
-    if state.point_number is None:
-        allowed_bet_types = {
-            BetType.PASS,
-            BetType.DONT_PASS,
-        }
-    else:
-        if state.bets.get(BetType.PASS, 0):
-            allowed_bet_types.add(BetType.PASS_ODDS)
-        if state.bets.get(BetType.DONT_PASS, 0):
-            allowed_bet_types.add(BetType.DONT_PASS_ODDS)
+    for bet_type in BetType:
+        bet_class = to_bet(bet_type)
+        bet = bet_class(
+            wager=state.bets.get(bet_type, 0),
+            point=state.point_number,
+            state=state,
+        )
+
+        assert bet.wager >= 0, 'Bet wager cannot be negative'
+        if bet.wager == 0:
+            if bet.can_add():
+                assert bet.max_wager() > 0
+                allowed_bet_types.add(bet_type)
+        elif (bet.can_remove() or
+              bet.min_wager() < bet.wager or bet.max_wager() > bet.wager):
+            allowed_bet_types.add(bet_type)
 
     assert allowed_bet_types, 'You cannot bet on anything! WTF?'
 
@@ -78,11 +84,28 @@ def round(state: GameState) -> None:
             print(f'{bet_amount_str!r} is not a valid bet amount.')
             continue
 
-        if bet_amount < 0:
+        bet_class = to_bet(bet_type)
+        bet = bet_class(
+            wager=state.bets.get(bet_type, 0),
+            point=state.point_number,
+            state=state,
+        )
+        new_wager = bet.wager + bet_amount
+
+        if new_wager < 0:
             print("You can't bet a negative amount!")
             continue
         elif bet_amount > state.balance:
             print("You don't have that much money.")
+            continue
+
+        min_wager = bet.min_wager()
+        if min_wager > new_wager:
+            print(f'You have to bet at least ${min_wager}')
+            continue
+        max_wager = bet.max_wager()
+        if max_wager < new_wager:
+            print(f'You cannot bet more than ${max_wager}')
             continue
 
         print('You made a bet.')
@@ -100,7 +123,7 @@ def round(state: GameState) -> None:
     # Use a list so we can modify the state.bets dictionary inside the loop
     for bet_type, wager in list(state.bets.items()):
         bet_class = to_bet(bet_type)
-        bet = bet_class(wager=wager, point=state.point_number)
+        bet = bet_class(wager=wager, point=state.point_number, state=state)
         bet_result = bet.check(roll=roll_sum)
 
         if bet_result == BetOutcome.WIN:
