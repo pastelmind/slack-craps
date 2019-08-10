@@ -1,23 +1,11 @@
 """A proof-of-concept, single player Craps game in the terminal."""
 
-from fractions import Fraction
 from operator import attrgetter
 from random import randint
 
 from game.bet import BetType, BetOutcome
 from game.bet import PassBet, DontPassBet
 from game.state import GameState
-
-
-# Multipliers on returns of a Pass Odds bet for each point number
-PASS_ODDS_MULTIPLIER = {
-    4: Fraction(6, 3),
-    5: Fraction(6, 4),
-    6: Fraction(6, 5),
-    8: Fraction(6, 5),
-    9: Fraction(6, 4),
-    10: Fraction(6, 3),
-}
 
 
 def round(state: GameState) -> None:
