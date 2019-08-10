@@ -176,12 +176,12 @@ class DontPassBet(Bet):
 
 # Maps each point number to pay rate of a Pass Odds bet
 _PASS_ODDS_PAY_RATE = {
-    4: Fraction(2, 1),
-    5: Fraction(3, 2),
+    4: Fraction(6, 3),
+    5: Fraction(6, 4),
     6: Fraction(6, 5),
     8: Fraction(6, 5),
-    9: Fraction(3, 2),
-    10: Fraction(2, 1),
+    9: Fraction(6, 4),
+    10: Fraction(6, 3),
 }
 
 # Maps each point number to maximum wager rate of a Pass Odds bet
