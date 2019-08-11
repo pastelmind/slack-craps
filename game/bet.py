@@ -74,10 +74,6 @@ class Bet:
         """
         return int(self.wager * self.pay_rate())
 
-    def can_add(self) -> bool:
-        """Checks if this bet can be added by the game rules."""
-        raise NotImplementedError('Must be overridden in a child class')
-
     def can_remove(self) -> bool:
         """Checks if this bet can be removed by the game rules."""
         raise NotImplementedError('Must be overridden in a child class')
@@ -87,6 +83,8 @@ class Bet:
 
         Returns:
             Minimum required wager, or 0 if there is no minimum.
+            Note that a bet may be removable AND have a positive minimum, or be
+            unremovable AND have no minimum.
         """
         raise NotImplementedError('Must be overridden in a child class')
 
@@ -121,9 +119,6 @@ class PassBet(Bet):
     def pay_rate(self) -> Union[float, Fraction]:
         return 1
 
-    def can_add(self) -> bool:
-        return self.point is None
-
     def can_remove(self) -> bool:
         return False
 
@@ -132,8 +127,8 @@ class PassBet(Bet):
         return self.wager
 
     def max_wager(self) -> Union[int, float]:
-        # Disallow increasing the wager, if set
-        return self.wager if self.wager else math.inf
+        # If bet exists, disallow increase; allow add only if Come Out roll
+        return self.wager or (math.inf if self.point is None else 0)
 
 
 class DontPassBet(Bet):
@@ -160,9 +155,6 @@ class DontPassBet(Bet):
     def pay_rate(self) -> Union[float, Fraction]:
         return 1
 
-    def can_add(self) -> bool:
-        return self.point is None
-
     def can_remove(self) -> bool:
         return True
 
@@ -170,8 +162,8 @@ class DontPassBet(Bet):
         return 0
 
     def max_wager(self) -> Union[int, float]:
-        # Disallow increasing the wager, if set
-        return self.wager if self.wager else math.inf
+        # If bet exists, disallow increase; allow add only if Come Out roll
+        return self.wager or (math.inf if self.point is None else 0)
 
 
 # Maps each point number to pay rate of a Pass Odds bet
@@ -218,9 +210,6 @@ class PassOddsBet(Bet):
                 f'{", ".join(_PASS_ODDS_PAY_RATE.keys())}'
             )
 
-    def can_add(self) -> bool:
-        return self.point is not None and BetType.PASS in self._state.bets
-
     def can_remove(self) -> bool:
         return True
 
@@ -228,7 +217,12 @@ class PassOddsBet(Bet):
         return 0
 
     def max_wager(self) -> Union[int, float]:
+        # Allow only if Point roll AND a Pass bet exists.
+        if self.point is None:
+            return 0
         pass_wager = self._state.bets.get(BetType.PASS, 0)
+        if not pass_wager:
+            return 0
         return int(pass_wager * _PASS_ODDS_MAX_WAGER_RATE[self.point])
 
 
@@ -255,9 +249,6 @@ class DontPassOddsBet(Bet):
                 f'{", ".join(_PASS_ODDS_PAY_RATE.keys())}'
             )
 
-    def can_add(self) -> bool:
-        return self.point is not None and BetType.DONT_PASS in self._state.bets
-
     def can_remove(self) -> bool:
         return True
 
@@ -265,7 +256,12 @@ class DontPassOddsBet(Bet):
         return 0
 
     def max_wager(self) -> Union[int, float]:
+        # Allow only if Point roll AND a Don't Pass bet exists.
+        if self.point is None:
+            return 0
         dont_pass_wager = self._state.bets.get(BetType.DONT_PASS, 0)
+        if not dont_pass_wager:
+            return 0
         pass_odds_wager_rate = _PASS_ODDS_MAX_WAGER_RATE[self.point]
         pass_odds_pay_rate = _PASS_ODDS_PAY_RATE[self.point]
         # assert pass_odds_wager_rate * pass_odds_pay_rate == 6

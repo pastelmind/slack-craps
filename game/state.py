@@ -100,13 +100,16 @@ class GameState:
             if self.balance < 0:
                 fail_reasons.append(bet.BetFailReason.NOT_ENOUGH_BALANCE)
                 break
-            elif old_bet.wager == 0 and wager > 0 and not old_bet.can_add():
+
+            max_wager = old_bet.max_wager()
+            if old_bet.wager == 0 and wager > 0 and max_wager == 0:
                 fail_reasons.append(bet.BetFailReason.CANNOT_ADD_BET)
                 break
-            elif wager > old_bet.max_wager():
+            elif wager > max_wager:
                 fail_reasons.append(bet.BetFailReason.WAGER_ABOVE_MAX)
                 break
-            elif old_bet.wager > 0 and wager == 0 and not old_bet.can_remove():
+
+            if old_bet.wager > 0 and wager == 0 and not old_bet.can_remove():
                 fail_reasons.append(bet.BetFailReason.CANNOT_REMOVE_BET)
                 break
             elif wager < old_bet.min_wager():

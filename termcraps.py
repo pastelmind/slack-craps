@@ -29,12 +29,9 @@ def round(state: GameState) -> None:
         bet = state.get_bet(bet_type)
 
         assert bet.wager >= 0, 'Bet wager cannot be negative'
-        if bet.wager == 0:
-            if bet.can_add():
-                assert bet.max_wager() > 0
-                allowed_bet_types.add(bet_type)
-        elif (bet.can_remove() or
-              bet.min_wager() < bet.wager or bet.max_wager() > bet.wager):
+        if bet.wager and (bet.can_remove() or bet.min_wager() < bet.wager):
+            allowed_bet_types.add(bet_type)
+        elif bet.max_wager() > bet.wager:
             allowed_bet_types.add(bet_type)
 
     assert allowed_bet_types, 'You cannot bet on anything! WTF?'
@@ -117,6 +114,7 @@ def round(state: GameState) -> None:
         print(f'You established a point: {state.point}')
     else:   # Undecided
         print('Roll it again, baby.')
+
 
 def game() -> None:
     """Represents a single game of craps."""
