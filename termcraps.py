@@ -1,11 +1,9 @@
 """A proof-of-concept, single player Craps game in the terminal."""
 
 from operator import attrgetter
-from random import randint
 
 from game.bet import BetType, BetOutcome
-from game.bet import PassBet, DontPassBet
-from game.state import GameState
+from game.state import GameState, RollOutcome
 
 
 def round(state: GameState) -> None:
@@ -91,43 +89,28 @@ def round(state: GameState) -> None:
         state.bets[bet_type] = new_wager
         break
 
-
-    (roll1, roll2) = state.last_roll = (randint(1, 6), randint(1, 6))
+    bet_outcomes = state.shoot_dice()
+    (roll1, roll2) = state.last_roll
     print(f'You rolled {roll1}, {roll2}')
-    roll_sum = sum(state.last_roll)
 
-    is_game_finished = False
+    for bet_type, outcome, wager, winnings in bet_outcomes:
+        bet_class = bet_type.to_class()
+        bet_name = bet_class.name
 
-    # Use a list so we can modify the state.bets dictionary inside the loop
-    for bet_type, wager in list(state.bets.items()):
-        bet = state.get_bet(bet_type)
-        bet_result = bet.check(roll=roll_sum)
+        if outcome == BetOutcome.WIN:
+            print(f'  You won a {bet_name} bet! (+${winnings})')
+        elif outcome == BetOutcome.LOSE:
+            print(f'  You lost a {bet_name} bet... (${wager} gone)')
+        elif outcome == BetOutcome.TIE:
+            print(f'  You tied a {bet_name} bet. (+${winnings})')
 
-        if bet_result == BetOutcome.WIN:
-            win_amount = wager + bet.winnings()
-            state.balance += win_amount
-            print(f'  You won a {bet.name} bet! (+${win_amount})')
-        elif bet_result == BetOutcome.LOSE:
-            print(f'  You lost a {bet.name} bet... (${wager} gone)')
-        elif bet_result == BetOutcome.TIE:
-            state.balance += wager
-            print(f'  You tied a {bet.name} bet. (+${wager})')
-
-        if bet_result != BetOutcome.UNDECIDED:
-            del state.bets[bet_type]
-            if isinstance(bet, (PassBet, DontPassBet)):
-                is_game_finished = True
-
-    if is_game_finished:
-        assert not state.bets, f'Unexpected bets remaining: \n{state.bets!r}'
-        state.reset_round()
-    else:
-        if state.point is None:
-            state.point = roll_sum
-            print(f'You established a point: {state.point}')
-        else:
-            print('Roll it again, baby.')
-
+    roll_outcome = state.last_roll_outcome
+    if roll_outcome == RollOutcome.FINISHED:
+        print('Round finished.')
+    elif roll_outcome == RollOutcome.POINT_ESTABLISHED:
+        print(f'You established a point: {state.point}')
+    else:   # Undecided
+        print('Roll it again, baby.')
 
 def game() -> None:
     """Represents a single game of craps."""
