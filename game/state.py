@@ -58,11 +58,7 @@ class GameState:
         if not isinstance(bet_type, bet.BetType):
             bet_type = bet.BetType(bet_type)
         bet_class = bet_type.to_class()
-        return bet_class(
-            wager=self.bets.get(bet_type, 0),
-            point=self.point,
-            state=self,
-        )
+        return bet_class(state=self)
 
     def set_bets(
             self, bets: Iterable[Tuple['bet.BetType', int]]
@@ -174,7 +170,7 @@ class GameState:
             results.append((bet_type, outcome, wager, winnings))
 
         # Create a dummy pass bet to check game end conditions
-        dummy_pass_bet = bet.PassBet(wager=0, point=self.point, state=self)
+        dummy_pass_bet = bet.PassBet(state=self)
         if dummy_pass_bet.check(roll=roll) != bet.BetOutcome.UNDECIDED:
             assert not self.bets, f'Unexpected bets remaining: \n{self.bets!r}'
             self.reset_round()

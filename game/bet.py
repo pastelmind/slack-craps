@@ -18,28 +18,27 @@ class BetOutcome(Enum):
 
 
 class Bet:
-    """A single bet.
+    """A view object on a type of bet.
 
     Args:
-        wager: Amount of wager to bet.
-        point: The point number for this bet, or None if not set.
         state: The game state object.
 
     Attributes:
         name: Human-readable name of the bet type.
         code: String representing the type of the bet.
+        wager: Amount of wager made on this bet. Read only.
     """
 
     name: str = 'Bet'
     code: str = NotImplementedError('Must be overridden in a child class')
 
-    def __init__(
-            self, *, wager: int, point: Union[int, None],
-            state: game_state.GameState,
-    ) -> None:
-        self.wager = wager
-        self.point = point
+    def __init__(self, *, state: game_state.GameState) -> None:
         self._state = state
+
+    @property
+    def wager(self) -> int:
+        """Amount of wager on this bet."""
+        return self._state.bets.get(BetType(self.code), 0)
 
     def check(self, *, roll: int) -> BetOutcome:
         """Checks the outcome of this bet after a given roll.
@@ -104,13 +103,13 @@ class PassBet(Bet):
     code: str = 'pass'
 
     def check(self, *, roll: int) -> BetOutcome:
-        if self.point is None:
+        if self._state.point is None:
             if roll in (7, 11):
                 return BetOutcome.WIN
             elif roll in (2, 3, 12):
                 return BetOutcome.LOSE
         else:
-            if roll == self.point:
+            if roll == self._state.point:
                 return BetOutcome.WIN
             elif roll == 7:
                 return BetOutcome.LOSE
@@ -128,7 +127,7 @@ class PassBet(Bet):
 
     def max_wager(self) -> Union[int, float]:
         # If bet exists, disallow increase; allow add only if Come Out roll
-        return self.wager or (math.inf if self.point is None else 0)
+        return self.wager or (math.inf if self._state.point is None else 0)
 
 
 class DontPassBet(Bet):
@@ -138,7 +137,7 @@ class DontPassBet(Bet):
     code: str = 'dont_pass'
 
     def check(self, *, roll: int) -> BetOutcome:
-        if self.point is None:
+        if self._state.point is None:
             if roll in (2, 3):
                 return BetOutcome.WIN
             elif roll in (7, 11):
@@ -148,7 +147,7 @@ class DontPassBet(Bet):
         else:
             if roll == 7:
                 return BetOutcome.WIN
-            elif roll == self.point:
+            elif roll == self._state.point:
                 return BetOutcome.LOSE
         return BetOutcome.UNDECIDED
 
@@ -163,7 +162,7 @@ class DontPassBet(Bet):
 
     def max_wager(self) -> Union[int, float]:
         # If bet exists, disallow increase; allow add only if Come Out roll
-        return self.wager or (math.inf if self.point is None else 0)
+        return self.wager or (math.inf if self._state.point is None else 0)
 
 
 # Maps each point number to pay rate of a Pass Odds bet
@@ -194,8 +193,8 @@ class PassOddsBet(Bet):
     code: str = 'pass_odds'
 
     def check(self, *, roll: int) -> BetOutcome:
-        assert self.point is not None, 'Point must be set for this bet'
-        if roll == self.point:
+        assert self._state.point is not None, 'Point must be set for this bet'
+        if roll == self._state.point:
             return BetOutcome.WIN
         elif roll == 7:
             return BetOutcome.LOSE
@@ -203,10 +202,10 @@ class PassOddsBet(Bet):
 
     def pay_rate(self) -> Union[float, Fraction]:
         try:
-            return _PASS_ODDS_PAY_RATE[self.point]
+            return _PASS_ODDS_PAY_RATE[self._state.point]
         except KeyError:
             raise ValueError(
-                f'{self.point!r} is invalid point, expected one of '
+                f'{self._state.point!r} is invalid point, expected one of '
                 f'{", ".join(_PASS_ODDS_PAY_RATE.keys())}'
             )
 
@@ -218,12 +217,12 @@ class PassOddsBet(Bet):
 
     def max_wager(self) -> Union[int, float]:
         # Allow only if Point roll AND a Pass bet exists.
-        if self.point is None:
+        if self._state.point is None:
             return 0
         pass_wager = self._state.bets.get(BetType.PASS, 0)
         if not pass_wager:
             return 0
-        return int(pass_wager * _PASS_ODDS_MAX_WAGER_RATE[self.point])
+        return int(pass_wager * _PASS_ODDS_MAX_WAGER_RATE[self._state.point])
 
 
 class DontPassOddsBet(Bet):
@@ -233,19 +232,19 @@ class DontPassOddsBet(Bet):
     code: str = 'dont_pass_odds'
 
     def check(self, *, roll: int) -> BetOutcome:
-        assert self.point is not None, 'Point must be set for this bet'
+        assert self._state.point is not None, 'Point must be set for this bet'
         if roll == 7:
             return BetOutcome.WIN
-        elif roll == self.point:
+        elif roll == self._state.point:
             return BetOutcome.LOSE
         return BetOutcome.UNDECIDED
 
     def pay_rate(self) -> Union[float, Fraction]:
         try:
-            return 1 / _PASS_ODDS_PAY_RATE[self.point]
+            return 1 / _PASS_ODDS_PAY_RATE[self._state.point]
         except KeyError:
             raise ValueError(
-                f'{self.point!r} is invalid point, expected one of '
+                f'{self._state.point!r} is invalid point, expected one of '
                 f'{", ".join(_PASS_ODDS_PAY_RATE.keys())}'
             )
 
@@ -257,13 +256,13 @@ class DontPassOddsBet(Bet):
 
     def max_wager(self) -> Union[int, float]:
         # Allow only if Point roll AND a Don't Pass bet exists.
-        if self.point is None:
+        if self._state.point is None:
             return 0
         dont_pass_wager = self._state.bets.get(BetType.DONT_PASS, 0)
         if not dont_pass_wager:
             return 0
-        pass_odds_wager_rate = _PASS_ODDS_MAX_WAGER_RATE[self.point]
-        pass_odds_pay_rate = _PASS_ODDS_PAY_RATE[self.point]
+        pass_odds_wager_rate = _PASS_ODDS_MAX_WAGER_RATE[self._state.point]
+        pass_odds_pay_rate = _PASS_ODDS_PAY_RATE[self._state.point]
         # assert pass_odds_wager_rate * pass_odds_pay_rate == 6
         return int(dont_pass_wager * pass_odds_wager_rate * pass_odds_pay_rate)
 
