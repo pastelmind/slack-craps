@@ -7,6 +7,11 @@ from typing import Dict, Iterable, List, Optional, Tuple, Union
 from . import bet
 
 
+class YouShallNotSkipPassError(Exception):
+    """Raised when the shooter didn't make a (Don't) Pass bet before the Come
+    Out roll."""
+
+
 @unique
 class RollOutcome(Enum):
     """Represents the outcome of a round after a dice roll (shoot)."""
@@ -130,7 +135,16 @@ class GameState:
         Returns:
             List of tuples of the form (BetType, BetOutcome, wager, win_amount)
             for each bet. If the bet is lost, win_amount is zero.
+
+        Raises:
+            YouShallNotSkipPassError: If the shooter has not made a (Don't) Pass
+                bet before the Come Out roll.
         """
+        if self.point is None:
+            if (bet.BetType.PASS not in self.bets
+                    and bet.BetType.DONT_PASS not in self.bets):
+                raise YouShallNotSkipPassError()
+
         self.last_roll = (randint(1, 6), randint(1, 6))
         roll = sum(self.last_roll)
 
