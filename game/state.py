@@ -113,7 +113,10 @@ class GameState:
                 fail_reasons.append(bet.BetFailReason.WAGER_BELOW_MIN)
                 break
 
-            self.bets[bet_type] = wager
+            if wager:
+                self.bets[bet_type] = wager
+            else:
+                self.bets.pop(bet_type, None)
             fail_reasons.append(bet.BetFailReason.SUCCESS)
 
         # If some bets were not applied, mark them as UNKNOWN.
