@@ -2,7 +2,7 @@
 
 from operator import attrgetter
 
-from game.bet import BetType, BetOutcome
+from game.bet import BetType, BetOutcome, BetFailReason
 from game.state import GameState, RollOutcome
 
 
@@ -68,26 +68,24 @@ def round(state: GameState) -> None:
         bet = state.get_bet(bet_type)
         new_wager = bet.wager + bet_amount
 
-        if new_wager < 0:
+        fail_reason, = state.set_bets([(bet_type, new_wager)])
+        if not fail_reason:
+            print("You made a bet.")
+            break
+        elif fail_reason == BetFailReason.NEGATIVE_WAGER:
             print("You can't bet a negative amount!")
-            continue
-        elif bet_amount > state.balance:
+        elif fail_reason == BetFailReason.NOT_ENOUGH_BALANCE:
             print("You don't have that much money.")
-            continue
-
-        min_wager = bet.min_wager()
-        if min_wager > new_wager:
-            print(f'You have to bet at least ${min_wager}')
-            continue
-        max_wager = bet.max_wager()
-        if max_wager < new_wager:
-            print(f'You cannot bet more than ${max_wager}')
-            continue
-
-        print('You made a bet.')
-        state.balance -= bet_amount
-        state.bets[bet_type] = new_wager
-        break
+        elif fail_reason == BetFailReason.CANNOT_ADD_BET:
+            print("You can't make that bet.")
+        elif fail_reason == BetFailReason.CANNOT_REMOVE_BET:
+            print("You can't remove that bet.")
+        elif fail_reason == BetFailReason.WAGER_BELOW_MIN:
+            print(f'You have to bet at least ${bet.min_wager()}')
+        elif fail_reason == BetFailReason.WAGER_ABOVE_MAX:
+            print(f'You cannot bet more than ${bet.max_wager()}')
+        else:
+            raise Exception(f'Unexpected failure: {fail_reason} for {bet_type}')
 
     bet_outcomes = state.shoot_dice()
     (roll1, roll2) = state.last_roll
