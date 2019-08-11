@@ -293,3 +293,22 @@ _BET_TYPE_TO_BET = {
         DontPassOddsBet,
     )
 }
+
+
+@unique
+class BetFailReason(Enum):
+    """Represents the cause of failure for adding, removing, or changing a bet.
+
+    Bet outcomes that represent failure are truthy, and success is falsy."""
+    SUCCESS = 0
+    UNKNOWN = 1     # Bet was not processed
+    INVALID_TYPE = 2
+    NEGATIVE_WAGER = 3
+    NOT_ENOUGH_BALANCE = 10
+    CANNOT_ADD_BET = 20
+    CANNOT_REMOVE_BET = 21
+    WAGER_BELOW_MIN = 22    # If bet cannot be decreased
+    WAGER_ABOVE_MAX = 23    # If bet cannot be increased
+
+    def __bool__(self):
+        return self != self.SUCCESS
