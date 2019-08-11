@@ -151,7 +151,6 @@ class GameState:
         self.last_roll = (randint(1, 6), randint(1, 6))
         roll = sum(self.last_roll)
 
-        is_game_finished = False
         results = []
         # Use a tuple so we can modify the bets dict inside the loop
         for bet_type, wager in tuple(self.bets.items()):
@@ -168,12 +167,12 @@ class GameState:
             if outcome != bet.BetOutcome.UNDECIDED:
                 self.balance += winnings
                 del self.bets[bet_type]
-                if isinstance(the_bet, (bet.PassBet, bet.DontPassBet)):
-                    is_game_finished = True
 
             results.append((bet_type, outcome, wager, winnings))
 
-        if is_game_finished:
+        # Create a dummy pass bet to check game end conditions
+        dummy_pass_bet = bet.PassBet(wager=0, point=self.point, state=self)
+        if dummy_pass_bet.check(roll=roll) != bet.BetOutcome.UNDECIDED:
             assert not self.bets, f'Unexpected bets remaining: \n{self.bets!r}'
             self.reset_round()
             self.last_roll_outcome = RollOutcome.FINISHED
