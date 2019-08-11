@@ -1,8 +1,17 @@
 """Provides classes for storing and querying the game state."""
 
+from enum import Enum, unique
 from typing import Dict, Optional, Tuple, Union
 
 from . import bet
+
+
+@unique
+class RollOutcome(Enum):
+    """Represents the outcome of a round after a dice roll (shoot)."""
+    UNDECIDED = 0
+    FINISHED = 1
+    POINT_ESTABLISHED = 2
 
 
 class GameState:
