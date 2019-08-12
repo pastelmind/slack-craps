@@ -144,7 +144,7 @@ class GameState:
     def shoot_dice(self) -> List[Tuple['bet.BetType', 'bet.BetOutcome', int]]:
         """Performs a dice shot, updates all bets, and returns their outcomes.
 
-        If the dice roll resolves a (Don't) Pass bet, also resets the round.
+        If the dice roll resolves a (Don't) Pass bet, also ends the game.
 
         Returns:
             List of tuples of the form (BetType, BetOutcome, wager, win_amount)
@@ -189,7 +189,7 @@ class GameState:
         dummy_pass_bet = bet.PassBet(state=self)
         if dummy_pass_bet.check(roll=roll) != bet.BetOutcome.UNDECIDED:
             assert not self.bets, f'Unexpected bets remaining: \n{self.bets!r}'
-            self.reset_round()
+            self._is_finished = True
             self.last_roll_outcome = RollOutcome.FINISHED
         elif self.point is None:
             self.point = roll
