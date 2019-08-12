@@ -39,7 +39,7 @@ class Bet:
 
     type: BetType = NotImplementedError('Must be overridden in a child class')
 
-    def __init__(self, *, state: game_state.GameState) -> None:
+    def __init__(self, *, state: 'game_state.GameState') -> None:
         self._state = state
 
     @property
