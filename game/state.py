@@ -38,12 +38,14 @@ class GameState:
         self.bets: Dict[bet.BetType, int] = {}
         self.last_roll: Optional[Tuple[int, int]] = None
         self.last_roll_outcome: RollOutcome = RollOutcome.UNDECIDED
+        self._is_finished: bool = False
 
     def reset_round(self) -> None:
         """Resets a round."""
         self.round = 0
         self.point = None
         self.bets.clear()
+        self._is_finished = False
 
     def get_bet(self, bet_type: Union['bet.BetType', str]) -> 'bet.Bet':
         """Retrieves a bet entry made by the player.
@@ -79,7 +81,13 @@ class GameState:
         Returns:
             List of reasons why each bet change failed. If all bets succeed, all
             reasons are equal to BetFailReason.SUCCESS.
+
+        Raises:
+            GameIsOverError: If the game is already over.
         """
+        if self._is_finished:
+            raise GameIsOverError()
+
         fail_reasons: List[bet.BetFailReason] = []
         old_bets = dict(self.bets)
         old_balance = self.balance
@@ -143,9 +151,13 @@ class GameState:
             for each bet. If the bet is lost, win_amount is zero.
 
         Raises:
+            GameIsOverError: If the game is already over.
             YouShallNotSkipPassError: If the shooter has not made a (Don't) Pass
                 bet before the Come Out roll.
         """
+        if self._is_finished:
+            raise GameIsOverError()
+
         if self.point is None:
             if (bet.BetType.PASS not in self.bets
                     and bet.BetType.DONT_PASS not in self.bets):
