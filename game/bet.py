@@ -103,7 +103,7 @@ class Bet:
         raise NotImplementedError('Must be overridden in a child class')
 
     @staticmethod
-    def from_type(bet_type: 'BetType') -> Type['Bet']:
+    def from_type(bet_type: BetType) -> Type['Bet']:
         """Converts a BetType to the corresponding subclass of Bet.
 
         Returns:
