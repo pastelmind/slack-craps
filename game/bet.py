@@ -33,11 +33,11 @@ class Bet:
         state: The game state object.
 
     Attributes:
-        code: String representing the type of the bet.
+        type: BetType representing the type of the bet.
         wager: Amount of wager made on this bet. Read only.
     """
 
-    code: str = NotImplementedError('Must be overridden in a child class')
+    type: BetType = NotImplementedError('Must be overridden in a child class')
 
     def __init__(self, *, state: game_state.GameState) -> None:
         self._state = state
@@ -45,7 +45,7 @@ class Bet:
     @property
     def wager(self) -> int:
         """Amount of wager on this bet."""
-        return self._state.bets.get(BetType(self.code), 0)
+        return self._state.bets.get(self.type, 0)
 
     def check(self, *, roll: int) -> BetOutcome:
         """Checks the outcome of this bet after a given roll.
@@ -121,7 +121,7 @@ class Bet:
 class PassBet(Bet):
     """A bet on the shooter winning."""
 
-    code: str = BetType.PASS.value
+    type: BetType = BetType.PASS
 
     def check(self, *, roll: int) -> BetOutcome:
         if self._state.point is None:
@@ -154,7 +154,7 @@ class PassBet(Bet):
 class DontPassBet(Bet):
     """A bet on the shooter losing."""
 
-    code: str = BetType.DONT_PASS.value
+    type: BetType = BetType.DONT_PASS
 
     def check(self, *, roll: int) -> BetOutcome:
         if self._state.point is None:
@@ -209,7 +209,7 @@ _PASS_ODDS_MAX_WAGER_RATE = {
 class PassOddsBet(Bet):
     """An Odds bet on a Pass bet winning."""
 
-    code: str = BetType.PASS_ODDS.value
+    type: BetType = BetType.PASS_ODDS
 
     def check(self, *, roll: int) -> BetOutcome:
         assert self._state.point is not None, 'Point must be set for this bet'
@@ -247,7 +247,7 @@ class PassOddsBet(Bet):
 class DontPassOddsBet(Bet):
     """An Odds bet on a Don't Pass bet winning."""
 
-    code: str = BetType.DONT_PASS_ODDS.value
+    type: BetType = BetType.DONT_PASS_ODDS
 
     def check(self, *, roll: int) -> BetOutcome:
         assert self._state.point is not None, 'Point must be set for this bet'
