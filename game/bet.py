@@ -9,6 +9,15 @@ from . import state as game_state
 
 
 @unique
+class BetType(Enum):
+    """A type of bet."""
+    PASS = 'pass'
+    DONT_PASS = 'dont_pass'
+    PASS_ODDS = 'pass_odds'
+    DONT_PASS_ODDS = 'dont_pass_odds'
+
+
+@unique
 class BetOutcome(Enum):
     """Represents the outcome of a bet."""
     UNDECIDED = 0
@@ -112,7 +121,7 @@ class Bet:
 class PassBet(Bet):
     """A bet on the shooter winning."""
 
-    code: str = 'pass'
+    code: str = BetType.PASS.value
 
     def check(self, *, roll: int) -> BetOutcome:
         if self._state.point is None:
@@ -145,7 +154,7 @@ class PassBet(Bet):
 class DontPassBet(Bet):
     """A bet on the shooter losing."""
 
-    code: str = 'dont_pass'
+    code: str = BetType.DONT_PASS.value
 
     def check(self, *, roll: int) -> BetOutcome:
         if self._state.point is None:
@@ -200,7 +209,7 @@ _PASS_ODDS_MAX_WAGER_RATE = {
 class PassOddsBet(Bet):
     """An Odds bet on a Pass bet winning."""
 
-    code: str = 'pass_odds'
+    code: str = BetType.PASS_ODDS.value
 
     def check(self, *, roll: int) -> BetOutcome:
         assert self._state.point is not None, 'Point must be set for this bet'
@@ -238,7 +247,7 @@ class PassOddsBet(Bet):
 class DontPassOddsBet(Bet):
     """An Odds bet on a Don't Pass bet winning."""
 
-    code: str = 'dont_pass_odds'
+    code: str = BetType.DONT_PASS_ODDS.value
 
     def check(self, *, roll: int) -> BetOutcome:
         assert self._state.point is not None, 'Point must be set for this bet'
@@ -274,15 +283,6 @@ class DontPassOddsBet(Bet):
         pass_odds_pay_rate = _PASS_ODDS_PAY_RATE[self._state.point]
         # assert pass_odds_wager_rate * pass_odds_pay_rate == 6
         return int(dont_pass_wager * pass_odds_wager_rate * pass_odds_pay_rate)
-
-
-@unique
-class BetType(Enum):
-    """A type of bet."""
-    PASS = PassBet.code
-    DONT_PASS = DontPassBet.code
-    PASS_ODDS = PassOddsBet.code
-    DONT_PASS_ODDS = DontPassOddsBet.code
 
 
 _BET_TYPE_TO_BET = {
