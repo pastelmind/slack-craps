@@ -12,6 +12,10 @@ class YouShallNotSkipPassError(Exception):
     Out roll."""
 
 
+class GameIsOverError(Exception):
+    """Raised when an action fails because the game is already over."""
+
+
 @unique
 class RollOutcome(Enum):
     """Represents the outcome of a round after a dice roll (shoot)."""
