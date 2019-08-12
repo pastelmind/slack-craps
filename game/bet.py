@@ -24,12 +24,10 @@ class Bet:
         state: The game state object.
 
     Attributes:
-        name: Human-readable name of the bet type.
         code: String representing the type of the bet.
         wager: Amount of wager made on this bet. Read only.
     """
 
-    name: str = 'Bet'
     code: str = NotImplementedError('Must be overridden in a child class')
 
     def __init__(self, *, state: game_state.GameState) -> None:
@@ -99,7 +97,6 @@ class Bet:
 class PassBet(Bet):
     """A bet on the shooter winning."""
 
-    name: str = 'Pass'
     code: str = 'pass'
 
     def check(self, *, roll: int) -> BetOutcome:
@@ -133,7 +130,6 @@ class PassBet(Bet):
 class DontPassBet(Bet):
     """A bet on the shooter losing."""
 
-    name: str = "Don't Pass"
     code: str = 'dont_pass'
 
     def check(self, *, roll: int) -> BetOutcome:
@@ -189,7 +185,6 @@ _PASS_ODDS_MAX_WAGER_RATE = {
 class PassOddsBet(Bet):
     """An Odds bet on a Pass bet winning."""
 
-    name: str = "Pass Odds"
     code: str = 'pass_odds'
 
     def check(self, *, roll: int) -> BetOutcome:
@@ -228,7 +223,6 @@ class PassOddsBet(Bet):
 class DontPassOddsBet(Bet):
     """An Odds bet on a Don't Pass bet winning."""
 
-    name: str = "Don't Pass Odds"
     code: str = 'dont_pass_odds'
 
     def check(self, *, roll: int) -> BetOutcome:

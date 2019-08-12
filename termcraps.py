@@ -1,10 +1,22 @@
 """A proof-of-concept, single player Craps game in the terminal."""
 
+from collections import defaultdict
 from operator import attrgetter
 
 from game.bet import BetType, BetOutcome, BetFailReason
 from game.state import GameState, RollOutcome
 from game.state import YouShallNotSkipPassError
+
+
+BET_TYPE_NAMES = defaultdict(
+    lambda: 'Name not found',
+    {
+        BetType.PASS: 'Pass',
+        BetType.DONT_PASS: "Don't Pass",
+        BetType.PASS_ODDS: 'Pass Odds',
+        BetType.DONT_PASS_ODDS: "Don't Pass Odds",
+    }
+)
 
 
 def round(state: GameState) -> None:
@@ -97,8 +109,7 @@ def round(state: GameState) -> None:
     print(f'You rolled {roll1}, {roll2}')
 
     for bet_type, outcome, wager, winnings in bet_outcomes:
-        bet_class = bet_type.to_class()
-        bet_name = bet_class.name
+        bet_name = BET_TYPE_NAMES[bet_type]
 
         if outcome == BetOutcome.WIN:
             print(f'  You won a {bet_name} bet! (+${winnings})')
