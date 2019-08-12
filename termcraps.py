@@ -110,7 +110,7 @@ def round(state: GameState) -> None:
     roll_outcome = state.last_roll_outcome
     if roll_outcome == RollOutcome.FINISHED:
         print('Round finished.')
-        state.reset_round()
+        state.reset()
     elif roll_outcome == RollOutcome.POINT_ESTABLISHED:
         print(f'You established a point: {state.point}')
     else:   # Undecided

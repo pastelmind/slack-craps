@@ -40,7 +40,7 @@ class GameState:
         self.last_roll_outcome: RollOutcome = RollOutcome.UNDECIDED
         self._is_finished: bool = False
 
-    def reset_round(self) -> None:
+    def reset(self) -> None:
         """Resets a round."""
         self.round = 0
         self.point = None
