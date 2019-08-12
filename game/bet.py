@@ -285,11 +285,14 @@ class DontPassOddsBet(Bet):
         return int(dont_pass_wager * pass_odds_wager_rate * pass_odds_pay_rate)
 
 
+# Used by Bet.from_type()
 _BET_TYPE_TO_BET = {
-    BetType.PASS: PassBet,
-    BetType.DONT_PASS: DontPassBet,
-    BetType.PASS_ODDS: PassOddsBet,
-    BetType.DONT_PASS_ODDS: DontPassOddsBet,
+    cls.type: cls for cls in (
+        PassBet,
+        DontPassBet,
+        PassOddsBet,
+        DontPassOddsBet,
+    )
 }
 
 
