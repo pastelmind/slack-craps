@@ -63,7 +63,7 @@ class GameState:
         """
         if not isinstance(bet_type, bet.BetType):
             bet_type = bet.BetType(bet_type)
-        bet_class = bet_type.to_class()
+        bet_class = bet.Bet.from_type(bet_type)
         return bet_class(state=self)
 
     def set_bets(

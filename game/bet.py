@@ -3,7 +3,7 @@
 import math
 from enum import Enum, unique
 from fractions import Fraction
-from typing import Union
+from typing import Type, Union
 
 from . import state as game_state
 
@@ -92,6 +92,21 @@ class Bet:
             Maximum allowed wager, or math.inf if there is no maximum.
         """
         raise NotImplementedError('Must be overridden in a child class')
+
+    @staticmethod
+    def from_type(bet_type: 'BetType') -> Type['Bet']:
+        """Converts a BetType to the corresponding subclass of Bet.
+
+        Returns:
+            A subclass of Bet.
+
+        Raises:
+            ValueError: If type does not match any bet.
+        """
+        try:
+            return _BET_TYPE_TO_BET[bet_type]
+        except KeyError:
+            raise ValueError(bet_type) from None
 
 
 class PassBet(Bet):
@@ -269,18 +284,12 @@ class BetType(Enum):
     PASS_ODDS = PassOddsBet.code
     DONT_PASS_ODDS = DontPassOddsBet.code
 
-    def to_class(self) -> 'Bet':
-        """Returns the bet class matching the current bet type."""
-        return _BET_TYPE_TO_BET[self.value]
-
 
 _BET_TYPE_TO_BET = {
-    cls.code: cls for cls in (
-        PassBet,
-        DontPassBet,
-        PassOddsBet,
-        DontPassOddsBet,
-    )
+    BetType.PASS: PassBet,
+    BetType.DONT_PASS: DontPassBet,
+    BetType.PASS_ODDS: PassOddsBet,
+    BetType.DONT_PASS_ODDS: DontPassOddsBet,
 }
 
 
