@@ -29,6 +29,9 @@ class GameState:
 
     Args:
         balance: Starting balance of the player.
+
+    Attributes:
+        is_finished: Read only. Checks if the game is over.
     """
 
     def __init__(self, balance: int) -> None:
@@ -39,6 +42,11 @@ class GameState:
         self.last_roll: Optional[Tuple[int, int]] = None
         self.last_roll_outcome: RollOutcome = RollOutcome.UNDECIDED
         self._is_finished: bool = False
+
+    @property
+    def is_finished(self) -> bool:
+        """Checks if the game is finished."""
+        return self._is_finished
 
     def reset(self) -> None:
         """Resets the game state for a new game, but keeps current balance."""
