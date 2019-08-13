@@ -22,18 +22,42 @@ class GameState:
         balance: Starting balance of the player.
 
     Attributes:
-        is_finished: Read only. Checks if the game is over.
-        round: Current round number, starts at 0. Is equal to number of dice
-            rolls made so far.
+        balance: Read only. Current balance of the player.
+        last_roll: Read only. A tuple of dice values from the last roll, or None
+            if the dice has never been rolled yet.
+        point: Read only. Current point number, or None if not set.
+        round: Read only. Current round number, starts at 0. Is equal to number
+            of dice rolls made so far.
+        is_finished: Read only. Is True if the game is over, False if not.
     """
 
     def __init__(self, balance: int) -> None:
-        self.balance = balance
-        self.round: int = 0
-        self.point: Optional[int] = None
+        self._balance = balance
+        self._last_roll: Optional[Tuple[int, int]] = None
+        self._point: Optional[int] = None
+        self._round: int = 0
         self.bets: Dict[bet.BetType, int] = {}
-        self.last_roll: Optional[Tuple[int, int]] = None
         self._is_finished: bool = False
+
+    @property
+    def balance(self) -> int:
+        """Returns the balance of the player, excluding active bets."""
+        return self._balance
+
+    @property
+    def last_roll(self) -> Optional[Tuple[int, int]]:
+        """Returns the dice values from last roll, or None if not rolled yet."""
+        return self._last_roll
+
+    @property
+    def point(self) -> int:
+        """Returns the current point number, or None if not set."""
+        return self._point
+
+    @property
+    def round(self) -> int:
+        """Returns the round number, equal to number of dice rolls so far."""
+        return self._round
 
     @property
     def is_finished(self) -> bool:
@@ -42,8 +66,8 @@ class GameState:
 
     def reset(self) -> None:
         """Resets the game state for a new game, but keeps current balance."""
-        self.round = 0
-        self.point = None
+        self._round = 0
+        self._point = None
         self.bets.clear()
         self._is_finished = False
 
@@ -90,7 +114,7 @@ class GameState:
 
         fail_reasons: List[bet.BetFailReason] = []
         old_bets = dict(self.bets)
-        old_balance = self.balance
+        old_balance = self._balance
 
         bets_iter = iter(bets)
         for bet_type, wager in bets_iter:
@@ -104,8 +128,8 @@ class GameState:
                 fail_reasons.append(bet.BetFailReason.INVALID_TYPE)
                 break
 
-            self.balance += old_bet.wager - wager
-            if self.balance < 0:
+            self._balance += old_bet.wager - wager
+            if self._balance < 0:
                 fail_reasons.append(bet.BetFailReason.NOT_ENOUGH_BALANCE)
                 break
 
@@ -137,7 +161,7 @@ class GameState:
         # Undo all changes if the last reason is failure
         if fail_reasons and fail_reasons[-1]:
             self.bets = old_bets
-            self.balance = old_balance
+            self._balance = old_balance
 
         return fail_reasons
 
@@ -159,13 +183,13 @@ class GameState:
         if self._is_finished:
             raise GameIsOverError()
 
-        if self.point is None:
+        if self._point is None:
             if (bet.BetType.PASS not in self.bets
                     and bet.BetType.DONT_PASS not in self.bets):
                 raise YouShallNotSkipPassError()
 
-        self.last_roll = (randint(1, 6), randint(1, 6))
-        roll = sum(self.last_roll)
+        self._last_roll = (randint(1, 6), randint(1, 6))
+        roll = sum(self._last_roll)
 
         results = []
         # Use a tuple so we can modify the bets dict inside the loop
@@ -181,7 +205,7 @@ class GameState:
                 winnings = 0
 
             if outcome != bet.BetOutcome.UNDECIDED:
-                self.balance += winnings
+                self._balance += winnings
                 del self.bets[bet_type]
 
             results.append((bet_type, outcome, wager, winnings))
@@ -191,8 +215,8 @@ class GameState:
         if dummy_pass_bet.check(roll=roll) != bet.BetOutcome.UNDECIDED:
             assert not self.bets, f'Unexpected bets remaining: \n{self.bets!r}'
             self._is_finished = True
-        elif self.point is None:
-            self.point = roll
+        elif self._point is None:
+            self._point = roll
 
-        self.round += 1
+        self._round += 1
         return results
