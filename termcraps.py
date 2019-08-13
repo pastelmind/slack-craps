@@ -20,7 +20,7 @@ BET_TYPE_NAMES = defaultdict(
 
 
 def round(state: GameState) -> None:
-    """A single round (die roll stage) in a round of craps."""
+    """A single round (die roll stage) in a game of craps."""
 
     if state.point is None:
         print(f'Round {state.round + 1}: Come Out phase')
