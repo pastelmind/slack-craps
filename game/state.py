@@ -32,6 +32,8 @@ class GameState:
 
     Attributes:
         is_finished: Read only. Checks if the game is over.
+        round: Current round number, starts at 0. Is equal to number of dice
+            rolls made so far.
     """
 
     def __init__(self, balance: int) -> None:
