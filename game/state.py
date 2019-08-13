@@ -154,6 +154,7 @@ class GameState:
     def shoot_dice(self) -> List[Tuple['bet.BetType', 'bet.BetOutcome', int]]:
         """Performs a dice shot, updates all bets, and returns their outcomes.
 
+        If the dice roll is successful, also increments the round counter.
         If the dice roll resolves a (Don't) Pass bet, also ends the game.
 
         Returns:
@@ -207,4 +208,5 @@ class GameState:
         else:
             self.last_roll_outcome = RollOutcome.UNDECIDED
 
+        self.round += 1
         return results
