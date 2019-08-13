@@ -1,7 +1,7 @@
 """Provides classes for storing and querying the game state."""
 
 from random import randint
-from typing import Dict, Iterable, List, Optional, Tuple, Union
+from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
 from . import bet
 
@@ -13,6 +13,10 @@ class YouShallNotSkipPassError(Exception):
 
 class GameIsOverError(Exception):
     """Raised when an action fails because the game is already over."""
+
+
+class UnsupportedSerializationFormatError(Exception):
+    """Raised when an unsupported serialization format is encountered."""
 
 
 class GameState:
@@ -220,3 +224,47 @@ class GameState:
 
         self._round += 1
         return results
+
+    def serialize(self) -> Dict[str, Any]:
+        """Returns a serialized object representation of the game state."""
+        return {
+            '_format': 1,
+            'balance': self._balance,
+            'last_roll': self._last_roll,
+            'point': self._point,
+            'round': self._round,
+            'is_finished': self._is_finished,
+            'bets': {
+                bet_type.value: wager for bet_type, wager in self.bets.items()
+            },
+        }
+
+    @classmethod
+    def deserialize(cls, data: Dict[str, Any]) -> 'GameState':
+        """Creates a game state from a serialized object.
+
+        Args:
+            data: An object compatible with the format used by .serialize().
+
+        Returns:
+            A new GameState instance.
+
+        Raises:
+            UnsupportedSerializationFormatError: If the format is unknown.
+        """
+        _format = data['_format']
+        if _format != 1:
+            raise UnsupportedSerializationFormatError(_format)
+
+        state = GameState(data['balance'])
+        # pylint: disable=protected-access
+        state._last_roll = tuple(data['last_roll']) or None
+        state._point = data['point']
+        state._round = data['round']
+        state._is_finished = data['is_finished']
+        state.bets = {
+            bet.BetType(code): wager for code, wager in data['bets'].items()
+        }
+        # pylint: enable=protected-access
+
+        return state
