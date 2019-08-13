@@ -4,7 +4,7 @@ from collections import defaultdict
 from operator import attrgetter
 
 from game.bet import BetType, BetOutcome, BetFailReason
-from game.state import GameState, RollOutcome
+from game.state import GameState
 from game.state import YouShallNotSkipPassError
 
 
@@ -117,13 +117,12 @@ def round(state: GameState) -> None:
         elif outcome == BetOutcome.TIE:
             print(f'  You tied a {bet_name} bet. (+${winnings})')
 
-    roll_outcome = state.last_roll_outcome
-    if roll_outcome == RollOutcome.FINISHED:
+    if state.is_finished:
         print('Round finished.')
         state.reset()
-    elif roll_outcome == RollOutcome.POINT_ESTABLISHED:
+    elif state.round == 1:
         print(f'You established a point: {state.point}')
-    else:   # Undecided
+    else:   # Point phase
         print('Roll it again, baby.')
 
 

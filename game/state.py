@@ -1,6 +1,5 @@
 """Provides classes for storing and querying the game state."""
 
-from enum import Enum, unique
 from random import randint
 from typing import Dict, Iterable, List, Optional, Tuple, Union
 
@@ -14,14 +13,6 @@ class YouShallNotSkipPassError(Exception):
 
 class GameIsOverError(Exception):
     """Raised when an action fails because the game is already over."""
-
-
-@unique
-class RollOutcome(Enum):
-    """Represents the outcome of a round after a dice roll (shoot)."""
-    UNDECIDED = 0
-    FINISHED = 1
-    POINT_ESTABLISHED = 2
 
 
 class GameState:
@@ -42,7 +33,6 @@ class GameState:
         self.point: Optional[int] = None
         self.bets: Dict[bet.BetType, int] = {}
         self.last_roll: Optional[Tuple[int, int]] = None
-        self.last_roll_outcome: RollOutcome = RollOutcome.UNDECIDED
         self._is_finished: bool = False
 
     @property
@@ -201,12 +191,8 @@ class GameState:
         if dummy_pass_bet.check(roll=roll) != bet.BetOutcome.UNDECIDED:
             assert not self.bets, f'Unexpected bets remaining: \n{self.bets!r}'
             self._is_finished = True
-            self.last_roll_outcome = RollOutcome.FINISHED
         elif self.point is None:
             self.point = roll
-            self.last_roll_outcome = RollOutcome.POINT_ESTABLISHED
-        else:
-            self.last_roll_outcome = RollOutcome.UNDECIDED
 
         self.round += 1
         return results
