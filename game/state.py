@@ -41,7 +41,7 @@ class GameState:
         self._is_finished: bool = False
 
     def reset(self) -> None:
-        """Resets a round."""
+        """Resets the game state for a new game, but keeps current balance."""
         self.round = 0
         self.point = None
         self.bets.clear()
