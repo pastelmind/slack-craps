@@ -14,3 +14,10 @@ setuptools==40.2.0
 # See: https://nvd.nist.gov/vuln/detail/CVE-2019-14806
 Werkzeug==0.15.3
 wheel==0.31.1
+# Additional dependencies
+aiohttp==3.5.4
+async-timeout==3.0.1
+attrs==19.1.0
+multidict==4.5.2
+slackclient==2.1.0
+yarl==1.3.0
