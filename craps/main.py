@@ -25,7 +25,7 @@ def _is_valid_request(request: flask.Request) -> bool:
 
     is_valid = WebClient.validate_slack_signature(
         signing_secret=SLACK_SIGNING_SECRET,
-        data=request.get_data(),
+        data=request.get_data(as_text=True),
         timestamp=timestamp,
         signature=request.headers.get('X-Slack-Signature'),
     )
