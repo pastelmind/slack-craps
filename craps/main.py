@@ -8,6 +8,7 @@ from typing import Any
 import flask
 from slack import WebClient
 
+from slackagent.events import dispatch_event, is_event
 from local_settings import SLACK_OAUTH_TOKEN, SLACK_SIGNING_SECRET
 
 
@@ -61,7 +62,10 @@ def on_request(request: flask.Request) -> Any:
         if data_type == 'url_verification':
             return data['challenge']
 
-        raise NotImplementedError(f'Unsupported event: {data}')
+        if is_event(data):
+            dispatch_event(data)
+        else:
+            raise NotImplementedError(f'Unsupported event: {data}')
 
     else:
         # This is probably an application/x-www-form-urlencoded format, which
