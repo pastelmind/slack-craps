@@ -4,9 +4,9 @@ from typing import Iterable, Dict
 
 from slack.web.classes.blocks import ActionsBlock
 from slack.web.classes.blocks import DividerBlock
-from slack.web.classes.blocks import ImageBlock
 from slack.web.classes.blocks import SectionBlock
 from slack.web.classes.elements import ButtonElement
+from slack.web.classes.elements import ImageElement
 from slack.web.classes.messages import Message
 
 from local_settings import IMAGE_URL_BASE
@@ -21,19 +21,16 @@ def welcome_message() -> Message:
     welcome = SectionBlock(
         text='Welcome to Slack Craps! '
         'To play a new game, message me with the word "new".'
+        '\n\n_Icons made by '
+        '<https://www.flaticon.com/authors/smashicons|Smashicons>'
+        ' from <www.flaticon.com>, licensed under '
+        '<http://creativecommons.org/licenses/by/3.0/|CC 3.0 BY>_',
+        accessory=ImageElement(
+            image_url=IMAGE_URL_BASE + 'dice.png',
+            alt_text='Slack Craps',
+        ),
     )
-    footnote = SectionBlock(
-        text=(
-            '_Icons made by '
-            '<https://www.flaticon.com/authors/smashicons|Smashicons>'
-            ' from <www.flaticon.com>, licensed under '
-            '<http://creativecommons.org/licenses/by/3.0/|CC 3.0 BY>_'
-        )
-    )
-    return Message(
-        blocks=[welcome, DividerBlock(), footnote],
-        text=welcome.text + '\n\n' + footnote.text
-    )
+    return Message(blocks=[welcome], text=welcome.text)
 
 
 def new_game_message(
