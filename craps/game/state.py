@@ -1,7 +1,8 @@
 """Provides classes for storing and querying the game state."""
 
+import json
 from random import randint
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
+from typing import Dict, Iterable, List, Optional, Tuple, Union
 
 from . import bet
 
@@ -225,9 +226,9 @@ class GameState:
         self._round += 1
         return results
 
-    def serialize(self) -> Dict[str, Any]:
-        """Returns a serialized object representation of the game state."""
-        return {
+    def serialize(self) -> str:
+        """Returns a serialized string representation of the game state."""
+        obj = {
             '_format': 1,
             'balance': self._balance,
             'last_roll': self._last_roll,
@@ -238,13 +239,14 @@ class GameState:
                 bet_type.value: wager for bet_type, wager in self.bets.items()
             },
         }
+        return json.dumps(obj, ensure_ascii=False, separators=(',', ':'))
 
     @classmethod
-    def deserialize(cls, data: Dict[str, Any]) -> 'GameState':
+    def deserialize(cls, data: str) -> 'GameState':
         """Creates a game state from a serialized object.
 
         Args:
-            data: An object compatible with the format used by .serialize().
+            data: String compatible with format used by GameState.serialize().
 
         Returns:
             A new GameState instance.
@@ -252,7 +254,8 @@ class GameState:
         Raises:
             UnsupportedSerializationFormatError: If the format is unknown.
         """
-        _format = data['_format']
+        obj = json.loads(data)
+        _format = obj['_format']
         if _format != 1:
             raise UnsupportedSerializationFormatError(_format)
 
