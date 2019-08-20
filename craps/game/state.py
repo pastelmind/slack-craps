@@ -254,8 +254,14 @@ class GameState:
         Raises:
             UnsupportedSerializationFormatError: If the format is unknown.
         """
-        obj = json.loads(data)
-        _format = obj['_format']
+        try:
+            obj = json.loads(data)
+        except json.JSONDecodeError as error:
+            raise UnsupportedSerializationFormatError('Invalid JSON') from error
+        try:
+            _format = obj['_format']
+        except (KeyError, TypeError) as error:
+            raise UnsupportedSerializationFormatError('No _format') from error
         if _format != 1:
             raise UnsupportedSerializationFormatError(_format)
 
