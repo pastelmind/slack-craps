@@ -24,7 +24,11 @@ def welcome_message() -> Message:
         '\n\n_Icons made by '
         '<https://www.flaticon.com/authors/smashicons|Smashicons>'
         ' from <www.flaticon.com>, licensed under '
-        '<http://creativecommons.org/licenses/by/3.0/|CC 3.0 BY>_',
+        '<http://creativecommons.org/licenses/by/3.0/|CC 3.0 BY>_'
+        '\n_Craps table image made by '
+        '<https://thoroughlyreviewed.com|thoroughlyreviewed.com>,'
+        ' licensed under '
+        '<https://creativecommons.org/licenses/by/2.0/|CC 2.0 BY>_',
         accessory=ImageElement(
             image_url=IMAGE_URL_BASE + 'dice.png',
             alt_text='Slack Craps',
@@ -55,7 +59,13 @@ def new_game_message(
         f'You approach a Craps table...\n'
     )
 
-    header = SectionBlock(text='New Game\n\nYou approach a Craps table.')
+    header = SectionBlock(
+        text='New Game\n\nYou approach a Craps table.',
+        accessory=ImageElement(
+            image_url=IMAGE_URL_BASE + 'craps-table.jpg',
+            alt_text='craps table',
+        ),
+    )
     status = SectionBlock(text=f'You have: ${balance}')
 
     buttons = []
