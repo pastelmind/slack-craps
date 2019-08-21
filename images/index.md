@@ -12,3 +12,9 @@ www.flaticon.com and are licensed under
 ![die-4.png](die-4.png)
 ![die-5.png](die-5.png)
 ![die-6.png](die-6.png)
+
+The following images were made by
+[thoroughlyreviewed.com](https://thoroughlyreviewed.com) and are licensed under
+[Creative Commons BY 2.0](https://creativecommons.org/licenses/by/2.0/)
+
+![craps-table.jpg](craps-table.jpg)
