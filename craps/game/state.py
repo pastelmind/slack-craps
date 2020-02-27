@@ -75,7 +75,7 @@ class GameState:
         self.bets.clear()
         self._is_finished = False
 
-    def get_bet(self, bet_type: Union['bet.BetType', str]) -> 'bet.Bet':
+    def get_bet(self, bet_type: Union["bet.BetType", str]) -> "bet.Bet":
         """Retrieves a bet entry made by the player.
 
         A bet that has not been added yet will have a wager of 0.
@@ -95,8 +95,8 @@ class GameState:
         return bet_class(state=self)
 
     def set_bets(
-            self, bets: Iterable[Tuple['bet.BetType', int]]
-    ) -> List['bet.BetFailReason']:
+        self, bets: Iterable[Tuple["bet.BetType", int]]
+    ) -> List["bet.BetFailReason"]:
         """Applies a series of bets to current bets and returns the results.
 
         Bet changes are all-or-nothing; if any bet change fails, none of them
@@ -169,7 +169,7 @@ class GameState:
 
         return fail_reasons
 
-    def shoot_dice(self) -> List[Tuple['bet.BetType', 'bet.BetOutcome', int]]:
+    def shoot_dice(self) -> List[Tuple["bet.BetType", "bet.BetOutcome", int]]:
         """Performs a dice shot, updates all bets, and returns their outcomes.
 
         If the dice roll is successful, also increments the round counter.
@@ -188,8 +188,10 @@ class GameState:
             raise GameIsOverError()
 
         if self._point is None:
-            if (bet.BetType.PASS not in self.bets
-                    and bet.BetType.DONT_PASS not in self.bets):
+            if (
+                bet.BetType.PASS not in self.bets
+                and bet.BetType.DONT_PASS not in self.bets
+            ):
                 raise YouShallNotSkipPassError()
 
         self._last_roll = (randint(1, 6), randint(1, 6))
@@ -205,7 +207,7 @@ class GameState:
                 winnings = wager + the_bet.winnings()
             elif outcome == bet.BetOutcome.TIE:
                 winnings = wager
-            else:   # Undecided or tied
+            else:  # Undecided or tied
                 winnings = 0
 
             if outcome != bet.BetOutcome.UNDECIDED:
@@ -217,7 +219,7 @@ class GameState:
         # Create a dummy pass bet to check game end conditions
         dummy_pass_bet = bet.PassBet(state=self)
         if dummy_pass_bet.check(roll=roll) != bet.BetOutcome.UNDECIDED:
-            assert not self.bets, f'Unexpected bets remaining: \n{self.bets!r}'
+            assert not self.bets, f"Unexpected bets remaining: \n{self.bets!r}"
             self._is_finished = True
         elif self._point is None:
             self._point = roll
@@ -228,19 +230,17 @@ class GameState:
     def serialize(self) -> Dict[str, Any]:
         """Returns a serialized object representation of the game state."""
         return {
-            '_format': 1,
-            'balance': self._balance,
-            'last_roll': self._last_roll,
-            'point': self._point,
-            'round': self._round,
-            'is_finished': self._is_finished,
-            'bets': {
-                bet_type.value: wager for bet_type, wager in self.bets.items()
-            },
+            "_format": 1,
+            "balance": self._balance,
+            "last_roll": self._last_roll,
+            "point": self._point,
+            "round": self._round,
+            "is_finished": self._is_finished,
+            "bets": {bet_type.value: wager for bet_type, wager in self.bets.items()},
         }
 
     @classmethod
-    def deserialize(cls, data: Dict[str, Any]) -> 'GameState':
+    def deserialize(cls, data: Dict[str, Any]) -> "GameState":
         """Creates a game state from a serialized object.
 
         Args:
@@ -252,19 +252,17 @@ class GameState:
         Raises:
             UnsupportedSerializationFormatError: If the format is unknown.
         """
-        _format = data['_format']
+        _format = data["_format"]
         if _format != 1:
             raise UnsupportedSerializationFormatError(_format)
 
-        state = GameState(data['balance'])
+        state = GameState(data["balance"])
         # pylint: disable=protected-access
-        state._last_roll = tuple(data['last_roll']) or None
-        state._point = data['point']
-        state._round = data['round']
-        state._is_finished = data['is_finished']
-        state.bets = {
-            bet.BetType(code): wager for code, wager in data['bets'].items()
-        }
+        state._last_roll = tuple(data["last_roll"]) or None
+        state._point = data["point"]
+        state._round = data["round"]
+        state._is_finished = data["is_finished"]
+        state.bets = {bet.BetType(code): wager for code, wager in data["bets"].items()}
         # pylint: enable=protected-access
 
         return state

@@ -11,15 +11,17 @@ from . import state as game_state
 @unique
 class BetType(Enum):
     """A type of bet."""
-    PASS = 'pass'
-    DONT_PASS = 'dont_pass'
-    PASS_ODDS = 'pass_odds'
-    DONT_PASS_ODDS = 'dont_pass_odds'
+
+    PASS = "pass"
+    DONT_PASS = "dont_pass"
+    PASS_ODDS = "pass_odds"
+    DONT_PASS_ODDS = "dont_pass_odds"
 
 
 @unique
 class BetOutcome(Enum):
     """Represents the outcome of a bet."""
+
     UNDECIDED = 0
     WIN = 1
     LOSE = 2
@@ -37,9 +39,9 @@ class Bet:
         wager: Amount of wager made on this bet. Read only.
     """
 
-    type: BetType = NotImplementedError('Must be overridden in a child class')
+    type: BetType = NotImplementedError("Must be overridden in a child class")
 
-    def __init__(self, *, state: 'game_state.GameState') -> None:
+    def __init__(self, *, state: "game_state.GameState") -> None:
         self._state = state
 
     @property
@@ -56,7 +58,7 @@ class Bet:
         Returns:
             The outcome of the bet.
         """
-        raise NotImplementedError('Must be overridden in a child class')
+        raise NotImplementedError("Must be overridden in a child class")
 
     def pay_rate(self) -> Union[float, Fraction]:
         """Returns the winnnings-to-wager rate for this bet.
@@ -67,7 +69,7 @@ class Bet:
         Raises:
             ValueError: If the internal point number is invalid for this bet.
         """
-        raise NotImplementedError('Must be overridden in a child class')
+        raise NotImplementedError("Must be overridden in a child class")
 
     def winnings(self) -> int:
         """Returns the winnnings offered for this bet.
@@ -82,7 +84,7 @@ class Bet:
 
     def can_remove(self) -> bool:
         """Checks if this bet can be removed by the game rules."""
-        raise NotImplementedError('Must be overridden in a child class')
+        raise NotImplementedError("Must be overridden in a child class")
 
     def min_wager(self) -> int:
         """Returns the minimum wager required for this bet.
@@ -92,7 +94,7 @@ class Bet:
             Note that a bet may be removable AND have a positive minimum, or be
             unremovable AND have no minimum.
         """
-        raise NotImplementedError('Must be overridden in a child class')
+        raise NotImplementedError("Must be overridden in a child class")
 
     def max_wager(self) -> Union[int, float]:
         """Returns the maximum wager allowed for this bet.
@@ -100,10 +102,10 @@ class Bet:
         Returns:
             Maximum allowed wager, or math.inf if there is no maximum.
         """
-        raise NotImplementedError('Must be overridden in a child class')
+        raise NotImplementedError("Must be overridden in a child class")
 
     @staticmethod
-    def from_type(bet_type: BetType) -> Type['Bet']:
+    def from_type(bet_type: BetType) -> Type["Bet"]:
         """Converts a BetType to the corresponding subclass of Bet.
 
         Returns:
@@ -212,7 +214,7 @@ class PassOddsBet(Bet):
     type: BetType = BetType.PASS_ODDS
 
     def check(self, *, roll: int) -> BetOutcome:
-        assert self._state.point is not None, 'Point must be set for this bet'
+        assert self._state.point is not None, "Point must be set for this bet"
         if roll == self._state.point:
             return BetOutcome.WIN
         elif roll == 7:
@@ -224,7 +226,7 @@ class PassOddsBet(Bet):
             return _PASS_ODDS_PAY_RATE[self._state.point]
         except KeyError:
             raise ValueError(
-                f'{self._state.point!r} is invalid point, expected one of '
+                f"{self._state.point!r} is invalid point, expected one of "
                 f'{", ".join(_PASS_ODDS_PAY_RATE.keys())}'
             )
 
@@ -250,7 +252,7 @@ class DontPassOddsBet(Bet):
     type: BetType = BetType.DONT_PASS_ODDS
 
     def check(self, *, roll: int) -> BetOutcome:
-        assert self._state.point is not None, 'Point must be set for this bet'
+        assert self._state.point is not None, "Point must be set for this bet"
         if roll == 7:
             return BetOutcome.WIN
         elif roll == self._state.point:
@@ -262,7 +264,7 @@ class DontPassOddsBet(Bet):
             return 1 / _PASS_ODDS_PAY_RATE[self._state.point]
         except KeyError:
             raise ValueError(
-                f'{self._state.point!r} is invalid point, expected one of '
+                f"{self._state.point!r} is invalid point, expected one of "
                 f'{", ".join(_PASS_ODDS_PAY_RATE.keys())}'
             )
 
@@ -287,12 +289,7 @@ class DontPassOddsBet(Bet):
 
 # Used by Bet.from_type()
 _BET_TYPE_TO_BET = {
-    cls.type: cls for cls in (
-        PassBet,
-        DontPassBet,
-        PassOddsBet,
-        DontPassOddsBet,
-    )
+    cls.type: cls for cls in (PassBet, DontPassBet, PassOddsBet, DontPassOddsBet,)
 }
 
 
@@ -301,15 +298,16 @@ class BetFailReason(Enum):
     """Represents the cause of failure for adding, removing, or changing a bet.
 
     Bet outcomes that represent failure are truthy, and success is falsy."""
+
     SUCCESS = 0
-    UNKNOWN = 1     # Bet was not processed
+    UNKNOWN = 1  # Bet was not processed
     INVALID_TYPE = 2
     NEGATIVE_WAGER = 3
     NOT_ENOUGH_BALANCE = 10
     CANNOT_ADD_BET = 20
     CANNOT_REMOVE_BET = 21
-    WAGER_BELOW_MIN = 22    # If bet cannot be decreased
-    WAGER_ABOVE_MAX = 23    # If bet cannot be increased
+    WAGER_BELOW_MIN = 22  # If bet cannot be decreased
+    WAGER_ABOVE_MAX = 23  # If bet cannot be increased
 
     def __bool__(self):
         return self != self.SUCCESS

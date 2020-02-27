@@ -9,13 +9,13 @@ from game.state import YouShallNotSkipPassError
 
 
 BET_TYPE_NAMES = defaultdict(
-    lambda: 'Name not found',
+    lambda: "Name not found",
     {
-        BetType.PASS: 'Pass',
+        BetType.PASS: "Pass",
         BetType.DONT_PASS: "Don't Pass",
-        BetType.PASS_ODDS: 'Pass Odds',
+        BetType.PASS_ODDS: "Pass Odds",
         BetType.DONT_PASS_ODDS: "Don't Pass Odds",
-    }
+    },
 )
 
 
@@ -23,56 +23,56 @@ def round(state: GameState) -> None:
     """A single round (die roll stage) in a game of craps."""
 
     if state.point is None:
-        print(f'Round {state.round + 1}: Come Out phase')
+        print(f"Round {state.round + 1}: Come Out phase")
     else:
-        print(f'Round {state.round + 1}: Point phase (point: {state.point})')
+        print(f"Round {state.round + 1}: Point phase (point: {state.point})")
 
-    bet_state_message = 'Your bets:'
+    bet_state_message = "Your bets:"
     if state.bets:
         for bet_type, amount in state.bets.items():
-            bet_state_message += f'\n  {bet_type.value}: {amount}'
+            bet_state_message += f"\n  {bet_type.value}: {amount}"
     else:
-        bet_state_message += '\n  None'
+        bet_state_message += "\n  None"
     print(bet_state_message)
 
     allowed_bet_types = set()
     for bet_type in BetType:
         bet = state.get_bet(bet_type)
 
-        assert bet.wager >= 0, 'Bet wager cannot be negative'
+        assert bet.wager >= 0, "Bet wager cannot be negative"
         if bet.wager and (bet.can_remove() or bet.min_wager() < bet.wager):
             allowed_bet_types.add(bet_type)
         elif bet.max_wager() > bet.wager:
             allowed_bet_types.add(bet_type)
 
-    assert allowed_bet_types, 'You cannot bet on anything! WTF?'
+    assert allowed_bet_types, "You cannot bet on anything! WTF?"
 
     while True:
-        bet_types_str = ', '.join(map(attrgetter('value'), allowed_bet_types))
-        bet_type_str = input(f'Choose bet type ({bet_types_str}): ').strip()
+        bet_types_str = ", ".join(map(attrgetter("value"), allowed_bet_types))
+        bet_type_str = input(f"Choose bet type ({bet_types_str}): ").strip()
 
         if not bet_type_str:
-            print('You decide to skip this round.')
+            print("You decide to skip this round.")
         else:
             try:
                 bet_type = BetType(bet_type_str)
             except ValueError:
-                print(f'{bet_type_str!r} is not a valid bet type.')
+                print(f"{bet_type_str!r} is not a valid bet type.")
                 continue
 
             bet_amount_str = input(
-                f'Choose amount to bet (your balance: {state.balance}) : '
+                f"Choose amount to bet (your balance: {state.balance}) : "
             )
             try:
                 bet_amount = int(bet_amount_str)
             except ValueError:
-                print(f'{bet_amount_str!r} is not a valid bet amount.')
+                print(f"{bet_amount_str!r} is not a valid bet amount.")
                 continue
 
             bet = state.get_bet(bet_type)
             new_wager = bet.wager + bet_amount
 
-            fail_reason, = state.set_bets([(bet_type, new_wager)])
+            (fail_reason,) = state.set_bets([(bet_type, new_wager)])
             if fail_reason:
                 if fail_reason == BetFailReason.NEGATIVE_WAGER:
                     print("You can't bet a negative amount!")
@@ -83,13 +83,11 @@ def round(state: GameState) -> None:
                 elif fail_reason == BetFailReason.CANNOT_REMOVE_BET:
                     print("You can't remove that bet.")
                 elif fail_reason == BetFailReason.WAGER_BELOW_MIN:
-                    print(f'You have to bet at least ${bet.min_wager()}')
+                    print(f"You have to bet at least ${bet.min_wager()}")
                 elif fail_reason == BetFailReason.WAGER_ABOVE_MAX:
-                    print(f'You cannot bet more than ${bet.max_wager()}')
+                    print(f"You cannot bet more than ${bet.max_wager()}")
                 else:
-                    raise Exception(
-                        f'Unexpected failure: {fail_reason} for {bet_type}'
-                    )
+                    raise Exception(f"Unexpected failure: {fail_reason} for {bet_type}")
                 continue
 
         try:
@@ -102,46 +100,46 @@ def round(state: GameState) -> None:
             continue
         break
 
-    print('You made a bet.')
+    print("You made a bet.")
 
     (roll1, roll2) = state.last_roll
-    print(f'You rolled {roll1}, {roll2}')
+    print(f"You rolled {roll1}, {roll2}")
 
     for bet_type, outcome, wager, winnings in bet_outcomes:
         bet_name = BET_TYPE_NAMES[bet_type]
 
         if outcome == BetOutcome.WIN:
-            print(f'  You won a {bet_name} bet! (+${winnings})')
+            print(f"  You won a {bet_name} bet! (+${winnings})")
         elif outcome == BetOutcome.LOSE:
-            print(f'  You lost a {bet_name} bet... (${wager} gone)')
+            print(f"  You lost a {bet_name} bet... (${wager} gone)")
         elif outcome == BetOutcome.TIE:
-            print(f'  You tied a {bet_name} bet. (+${winnings})')
+            print(f"  You tied a {bet_name} bet. (+${winnings})")
 
     if state.is_finished:
-        print('Round finished.')
+        print("Round finished.")
         state.reset()
     elif state.round == 1:
-        print(f'You established a point: {state.point}')
-    else:   # Point phase
-        print('Roll it again, baby.')
+        print(f"You established a point: {state.point}")
+    else:  # Point phase
+        print("Roll it again, baby.")
 
 
 def game() -> None:
     """Represents a single game of craps."""
-    print('Welcome to craps!')
+    print("Welcome to craps!")
 
     balance = 1000
     state = GameState(balance)
-    print(f'You start with ${balance}')
+    print(f"You start with ${balance}")
 
-    print('-' * 32)
+    print("-" * 32)
     while True:
         if state.balance <= 0 and not state.bets:
             print("You're broke! Game over.")
             break
         round(state)
-        print('-' * 32)
+        print("-" * 32)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     game()
