@@ -11,7 +11,8 @@ Flask==1.0.2
   # Update Werkzeug to handle CVE-2019-14806
   # See: https://nvd.nist.gov/vuln/detail/CVE-2019-14806
   Werkzeug==0.15.3
-pip==18.0
+# pip 18.0 fails to install black; a newer version is required.
+pip==20.0.2
 requests==2.21.0
   certifi==2019.11.28
   chardet==3.0.4
