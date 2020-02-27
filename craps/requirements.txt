@@ -1,16 +1,21 @@
 # List of pre-installed packages provided by Google Functions Python runtime
 # See: https://cloud.google.com/functions/docs/writing/specifying-dependencies-python#pre-installed_packages
-click==6.7
+# Formatted using pipdeptree
 Flask==1.0.2
-itsdangerous==0.24
-# Update Jinja2 to handle CVE-2019-10906
-# See: https://nvd.nist.gov/vuln/detail/CVE-2019-10906
-Jinja2==2.10.1
-MarkupSafe==1.0
+  click==6.7
+  itsdangerous==0.24
+  # Update Jinja2 to handle CVE-2019-10906
+  # See: https://nvd.nist.gov/vuln/detail/CVE-2019-10906
+  Jinja2==2.10.1
+    MarkupSafe==1.0
+  # Update Werkzeug to handle CVE-2019-14806
+  # See: https://nvd.nist.gov/vuln/detail/CVE-2019-14806
+  Werkzeug==0.15.3
 pip==18.0
 requests==2.21.0
+  certifi==2019.11.28
+  chardet==3.0.4
+  idna==2.8
+  urllib3==1.24.3
 setuptools==40.2.0
-# Update Werkzeug to handle CVE-2019-14806
-# See: https://nvd.nist.gov/vuln/detail/CVE-2019-14806
-Werkzeug==0.15.3
 wheel==0.31.1
